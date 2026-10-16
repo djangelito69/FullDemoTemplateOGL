@@ -113,7 +113,7 @@ public:
         calculateCameraPosition(pRotY, pTrans, calculateHorizontalDistance(), calculateVerticalDistance());
         setYaw(180 - pRotY - angleAroundPlayer);
         // Obtenemos la proyeccion en base a la ventana
-        projection = glm::perspective(glm::radians(getZoom()), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        projection = glm::perspective(glm::radians(getZoom()), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 10000.0f);
         // Obtenemos la vista
         GetViewMatrix(view);
         updateCameraVectors();

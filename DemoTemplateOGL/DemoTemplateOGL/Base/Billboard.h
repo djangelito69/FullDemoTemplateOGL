@@ -34,6 +34,7 @@ public:
 
 	virtual void prepShader(Shader& shader, int idx = 0);
 
+	void setTexture(WCHAR textura[]);
 	void setTextureCoords(float *tCoords);
 
 	void setAlto(float alto);

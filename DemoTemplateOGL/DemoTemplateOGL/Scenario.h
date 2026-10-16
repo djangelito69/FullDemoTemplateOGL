@@ -11,12 +11,12 @@
 #include <vector>
 #include "Base/camera.h"
 #include "Base/Billboard.h"
-#include "Base/BillboardAnimation.h"
 #include <iostream>
 #include "Base/Scene.h"
 #include "Texto.h"
 #include "Billboard2D.h"
 #include "CollitionBox.h"
+#include "spritesec.h"
 
 class Scenario : public Scene {
 private:
@@ -26,10 +26,11 @@ private:
 	std::vector<BillboardAnimation*> billBoardAnim;
 	std::vector<Billboard2D*> billBoard2D;
 	std::vector<Model*> ourModel;
+	spritesec* arbolPino = nullptr;
 	Model* camara;
 	Water* water;
 	float angulo;
-	float animacion = 0;
+	double tiempoAnimacionPino = 0.0;
 	std::vector<Texto*> ourText;
 public:
 	Scenario(Camera *cam);

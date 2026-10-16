@@ -124,10 +124,10 @@ void Model::prepShader(Shader& gpuDemo, ModelAttributes& attributes) {
             model = glm::translate(model, attributes.translate); // translate it down so it's at the center of the scene
     //			model = glm::translate(model, glm::vec3(cameraDetails.Position->x, cameraDetails.Position->y - 5, cameraDetails.Position->z)); // translate it down so it's at the center of the scene
             //model = glm::scale(model, glm::vec3(0.0025f, 0.0025f, 0.0025f));	// it's a bit too big for our scene, so scale it down
-        if (attributes.rotation.x != 0)
-            model = glm::rotate(model, glm::radians(attributes.rotX), glm::vec3(1, 0, 0));
         if (attributes.rotation.y != 0)
             model = glm::rotate(model, glm::radians(attributes.rotY), glm::vec3(0, 1, 0));
+        if (attributes.rotation.x != 0)
+            model = glm::rotate(model, glm::radians(attributes.rotX), glm::vec3(1, 0, 0));
         if (attributes.rotation.z != 0)
             model = glm::rotate(model, glm::radians(attributes.rotZ), glm::vec3(0, 0, 1));
         if (attributes.hasScale)

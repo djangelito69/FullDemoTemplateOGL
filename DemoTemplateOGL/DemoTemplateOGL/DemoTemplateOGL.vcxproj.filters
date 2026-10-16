@@ -141,6 +141,12 @@
     <ClInclude Include="Base\shaderGL33.h">
       <Filter>Header Files\Base</Filter>
     </ClInclude>
+    <ClInclude Include="spritesec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitivos.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DemoTemplateOGL.cpp">

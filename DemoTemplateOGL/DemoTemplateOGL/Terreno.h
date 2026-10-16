@@ -69,7 +69,7 @@ public:
 		unsigned char* mapaAlturas = loadFile(stext, &mapAlturaX, &mapAlturaY, &mapAlturaComp, 0);
 		//en caso del puntero de la imagen sea nulo se brica esta opcion
 		UTILITIES_OGL::Maya terreno = UTILITIES_OGL::Plano(mapAlturaX, mapAlturaY, ancho, prof, mapaAlturas, mapAlturaComp, 30);
-		UTILITIES_OGL::vectoresEsfera(terreno, vertices, indices, mapAlturaX * mapAlturaY * 3, (mapAlturaX - 1) * (mapAlturaY - 1) * 6);
+		UTILITIES_OGL::vectoresEsfera(terreno, vertices, indices, mapAlturaX * mapAlturaY, (mapAlturaX - 1) * (mapAlturaY - 1) * 6);
 		delete[] terreno.maya;
 		delete[] terreno.indices;
 		verx = mapAlturaX;

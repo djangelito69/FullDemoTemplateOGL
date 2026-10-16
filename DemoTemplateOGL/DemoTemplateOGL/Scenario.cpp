@@ -1,4 +1,5 @@
 #include "Scenario.h"
+#include <random>
 #ifdef __linux__ 
 #define ZeroMemory(x,y) memset(x,0,y)
 #define wcscpy_s(x,y,z) wcscpy(x,z)
@@ -19,15 +20,15 @@ Scenario::Scenario(Camera *cam) {
 Scenario::Scenario(Model *camIni) {
     InitGraph(camIni);
 }
-void Scenario::InitGraph(Model *main) {
-    float matAmbient[] = { 1,1,1,1 };
+void Scenario::InitGraph(Model* main) {
+	float matAmbient[] = { 1,1,1,1 };
 	float matDiff[] = { 1,1,1,1 };
 	angulo = 0;
 	camara = main;
 	//creamos el objeto skydome
-	sky = new SkyDome(32, 32, 20, (WCHAR*)L"skydome/earth.jpg", main->cameraDetails);
+	sky = new SkyDome(32, 32, 20, (WCHAR*)L"skydome/nublado.jpg", main->cameraDetails);
 	//creamos el terreno
-	terreno = new Terreno((WCHAR*)L"skydome/terreno.jpg", (WCHAR*)L"skydome/texterr2.jpg", 400, 400, main->cameraDetails);
+	terreno = new Terreno((WCHAR*)L"skydome/TerrenoGranja.jpg", (WCHAR*)L"skydome/Grass2.jpg", 400, 400, main->cameraDetails);
 	water = new Water((WCHAR*)L"textures/terreno.bmp", (WCHAR*)L"textures/water.bmp", 20, 20, camara->cameraDetails);
 	glm::vec3 translate;
 	glm::vec3 scale;
@@ -38,32 +39,8 @@ void Scenario::InitGraph(Model *main) {
 	// -----------
 	ourModel.emplace_back(main);
 	Model* model;
-	model = new Model("models/fogata/fogata.obj", main->cameraDetails);
-	translate = glm::vec3(0.0f, 10.0f, 25.0f);
-	model->setTranslate(&translate);
-	model->setNextTranslate(&translate);
-	rotation = glm::vec3(1.0f, 0.0f, 0.0f); //rotation X
-	model->setNextRotX(45); // 45� rotation
-	ourModel.emplace_back(model);
-
 	ModelAttributes m;
-	Model *pez = new Model("models/pez/pez.obj", main->cameraDetails);
-	translate = glm::vec3(0.0f, terreno->Superficie(0.0f, 50.0f), 50.0f);
-	pez->setNextTranslate(&translate);
-	pez->setTranslate(&translate);
-	ourModel.emplace_back(pez);
-	model = CollitionBox::GenerateAABB(m.translate, pez->AABBsize, main->cameraDetails);
-	m.hitbox = model;
-	pez->getModelAttributes()->push_back(m);
-	translate.x = 5;
-	pez->setTranslate(&translate, pez->getModelAttributes()->size()-1);
-	pez->setNextTranslate(&translate, pez->getModelAttributes()->size()-1);
-	model = CollitionBox::GenerateAABB(m.translate, pez->AABBsize, main->cameraDetails);
-	m.hitbox = model; // Le decimos al ultimo ModelAttribute que tiene un hitbox asignado
-	pez->getModelAttributes()->push_back(m);
-	translate.x = 10;
-	pez->setTranslate(&translate, pez->getModelAttributes()->size()-1);
-	pez->setNextTranslate(&translate, pez->getModelAttributes()->size()-1);
+
 
 	model = new Model("models/dancing_vampire/dancing_vampire.dae", main->cameraDetails);
 	translate = glm::vec3(0.0f, terreno->Superficie(0.0f, 60.0f), 60.0f);
@@ -109,6 +86,7 @@ void Scenario::InitGraph(Model *main) {
 	silly->setScale(&scale, silly->getModelAttributes()->size()-1);
 	silly->setNextRotY(180, silly->getModelAttributes()->size()-1);
 	silly->setRotY(180, silly->getModelAttributes()->size()-1);
+
 	// Import model and clone with bones and animations
 	model = new Model("models/Silly_Dancing/Silly_Dancing.fbx", main->cameraDetails);
 	translate = glm::vec3(30.0f, terreno->Superficie(30.0f, 60.0f) , 60.0f);
@@ -142,21 +120,7 @@ void Scenario::InitGraph(Model *main) {
 //	model->setScale(&scale);
 //	model->setTranslate(&translate);
 //	ourModel.emplace_back(model);
-	model = new Model("models/backpack/backpack.obj", main->cameraDetails, false, false);
-	translate = glm::vec3(20.0f, terreno->Superficie(20.0f, 0.0f) + 2, 0.0f);
-	scale = glm::vec3(1.0f, 1.0f, 1.0f);	// it's a bit too big for our scene, so scale it down
-	model->setTranslate(&translate);
-	model->setNextTranslate(&translate);
-	model->setScale(&scale);
-	ourModel.emplace_back(model);
-	model->lightColor = glm::vec3(10,0,0);
-	model = new CollitionBox(60.0f, 15.0f, 10.0f, 10, 10, 10, main->cameraDetails);
-	scale = glm::vec3(1.0f, 1.0f, 1.0f);	// it's a bit too big for our scene, so scale it down
-	model->setNextTranslate(model->getTranslate());
-	model->setScale(&scale);
-	ourModel.emplace_back(model);
 	
-
 	inicializaBillboards();
 	std::wstring prueba(L"Esta es una prueba");
 	ourText.emplace_back(new Texto(prueba, 0.30, 0, 0, SCR_HEIGHT, 0, model->cameraDetails));
@@ -165,37 +129,43 @@ void Scenario::InitGraph(Model *main) {
 	billBoard2D.back()->setScale(&scale);
 	}
 
+	// ANIMACION DEL ARBOL?
+
 void Scenario::inicializaBillboards() {
-	float ye = terreno->Superficie(0, 0) + 3;
-	Billboard *arbol = new Billboard((WCHAR*)L"billboards/Arbol.png", 6, 6, 0, ye, 0, camara->cameraDetails);
-	billBoard.emplace_back(arbol);
-	ModelAttributes mAttr;
-	glm::vec3 pos(5, ye, 0);
-	mAttr.setTranslate(&pos);
-	arbol->getModelAttributes()->push_back(mAttr);
-	pos = glm::vec3(10, ye, 0);
-	mAttr.setTranslate(&pos);
-	arbol->getModelAttributes()->push_back(mAttr);
-	pos = glm::vec3(-10, ye, 0);
-	mAttr.setTranslate(&pos);
-	arbol->getModelAttributes()->push_back(mAttr);
+	const int cantidadArboles = 70;
+	const float limiteX = 190.0f;
+	const float limiteZ = 190.0f;
+	const float alturaArbol = 10.5f;
+
+	std::random_device semilla;
+	std::mt19937 generador(semilla());
+	std::uniform_real_distribution<float> distribucionX(-limiteX, limiteX);
+	std::uniform_real_distribution<float> distribucionZ(-limiteZ, limiteZ);
+
+	float x = distribucionX(generador);
+	float z = distribucionZ(generador);
+	float ye = terreno->Superficie(x, z) + alturaArbol;
+
+	std::vector<std::wstring> texturasPino = {
+		L"billboards/Pino1.png",
+		L"billboards/Pino2.png"
+	};
+	arbolPino = new spritesec(texturasPino, 16, 22, x, ye, z, camara->cameraDetails);
+	billBoard.emplace_back(arbolPino);
+
+	for (int i = 1; i < cantidadArboles; i++) {
+		x = distribucionX(generador);
+		z = distribucionZ(generador);
+		ye = terreno->Superficie(x, z) + alturaArbol;
+
+		ModelAttributes mAttr;
+		glm::vec3 pos(x, ye, z);
+		mAttr.setTranslate(&pos);
+		arbolPino->getModelAttributes()->push_back(mAttr);
+	}
 
 	ye = terreno->Superficie(-9, -15) + 4;
 	billBoard.emplace_back(new Billboard((WCHAR*)L"billboards/Arbol3.png", 8, 8, -9, ye, -15, camara->cameraDetails));
-
-	BillboardAnimation *billBoardAnimated = new BillboardAnimation();
-	ye = terreno->Superficie(5, -5) + 3;
-	for (int frameArbol = 1; frameArbol < 4; frameArbol++){
-		wchar_t textura[50] = {L"billboards/Arbol"};
-		if (frameArbol != 1){
-			wchar_t convert[25];
-			swprintf(convert, 25, L"%d", frameArbol);
-			wcscat_s(textura, 50, convert);
-		}
-		wcscat_s(textura, 50, L".png");
-		billBoardAnimated->pushFrame(new Billboard((WCHAR*)textura, 6, 6, 5, ye, -5, camara->cameraDetails));		
-	}
-	billBoardAnim.emplace_back(billBoardAnimated);
 }
 
 	//el metodo render toma el dispositivo sobre el cual va a dibujar
@@ -203,13 +173,10 @@ void Scenario::inicializaBillboards() {
 Scene* Scenario::Render() {
 	clearScreen();
 
-	if (this->animacion > 10) { // Timer se ejecuta cada 1000/30 = 33.333 ms
-		for (BillboardAnimation *b : billBoardAnim){
-			b->nextAnimation();
-		}
-		this->animacion = 0;
-	} else {
-		animacion = animacion + (1 * gameTime.deltaTime/100);
+	tiempoAnimacionPino += gameTime.deltaTime;
+	if (tiempoAnimacionPino >= 800.0 && arbolPino != nullptr) {
+		tiempoAnimacionPino -= 800.0;
+		arbolPino->siguienteTextura();
 	}
 	// Decimos que dibuje la media esfera
 	sky->Draw();
@@ -219,8 +186,6 @@ Scene* Scenario::Render() {
 	// Dibujamos cada billboard que este cargado en el arreglo de billboards.
 	for (int i = 0; i < billBoard.size(); i++)
 		billBoard[i]->Draw();
-	for (int i = 0; i < billBoardAnim.size(); i++)
-		billBoardAnim[i]->Draw();
 	for (int i = 0; i < billBoard2D.size(); i++)
 		billBoard2D[i]->Draw();
 	// Dibujamos cada modelo que este cargado en nuestro arreglo de modelos
@@ -240,16 +205,15 @@ std::vector<Model*> *Scenario::getLoadedModels() {
 std::vector<Billboard*> *Scenario::getLoadedBillboards() {
 	return &billBoard;
 }
+std::vector<BillboardAnimation*> *Scenario::getLoadedBillboardsAnimation(){
+	return &billBoardAnim;
+}
 std::vector<Billboard2D*> *Scenario::getLoadedBillboards2D(){
 	return &billBoard2D;
 }
 std::vector<Texto*> *Scenario::getLoadedText(){
 	return &ourText;
 }
-std::vector<BillboardAnimation*> *Scenario::getLoadedBillboardsAnimation(){
-	return &billBoardAnim;
-}
-
 Model* Scenario::getMainModel() {
 	return this->camara;
 }
@@ -286,10 +250,6 @@ Scenario::~Scenario() {
 		for (int i = 0; i < billBoard.size(); i++)
 			delete billBoard[i];
 	this->billBoard.clear();
-	if (billBoardAnim.size() > 0)
-		for (int i = 0; i < billBoardAnim.size(); i++)
-			delete billBoardAnim[i];
-	this->billBoardAnim.clear();
 	if (billBoard2D.size() > 0)
 		for (int i = 0; i < billBoard2D.size(); i++)
 			delete billBoard2D[i];

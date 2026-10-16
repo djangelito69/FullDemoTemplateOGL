@@ -112,6 +112,30 @@ void Billboard::initBillboard(Texture &texture, float ancho, float alto, float x
 	textures_loaded.emplace_back(&this->meshes[0]->textures.data()[0]);
 }
 
+void Billboard::setTexture(WCHAR textura[]) {
+	if (meshes.empty() || meshes[0]->textures.empty())
+		return;
+
+	char stext[1024];
+#ifdef _WIN32
+	wcstombs_s(NULL, stext, 1024, textura, 1024);
+#else
+	wcstombs(stext, textura, 1024);
+#endif
+
+	Texture nuevaTextura{};
+	bool alpha = true;
+	if (!TextureFromFile(nuevaTextura, stext, this->directory, false, true, &alpha))
+		return;
+
+	strcpy_s(nuevaTextura.type, 255, "texture_diffuse");
+	strcpy_s(nuevaTextura.path, 1024, stext);
+
+	Texture& texturaActual = meshes[0]->textures[0];
+	freeTexture(texturaActual);
+	texturaActual = nuevaTextura;
+}
+
 Billboard::~Billboard(){
 	//nos aseguramos de disponer de los recursos previamente reservados
 }
