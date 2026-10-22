@@ -29,12 +29,10 @@ void Scenario::InitGraph(Model* main) {
 	sky = new SkyDome(32, 32, 20, (WCHAR*)L"skydome/nublado.jpg", main->cameraDetails);
 	//creamos el terreno
 	terreno = new Terreno((WCHAR*)L"skydome/TerrenoGranja.jpg", (WCHAR*)L"skydome/Grass2.jpg", 400, 400, main->cameraDetails);
-	water = new Water((WCHAR*)L"textures/terreno.bmp", (WCHAR*)L"textures/water.bmp", 20, 20, camara->cameraDetails);
 	glm::vec3 translate;
 	glm::vec3 scale;
 	glm::vec3 rotation;
 	translate = glm::vec3(0.0f, 20.0f, 30.0f);
-	water->setTranslate(&translate);
 	// load models
 	// -----------
 	ourModel.emplace_back(main);
@@ -61,66 +59,27 @@ void Scenario::InitGraph(Model* main) {
 		ERRORL("Could not load animation!", "ANIMACION");
 	}
 
-	Model* silly = new Model("models/Silly_Dancing/Silly_Dancing.fbx", main->cameraDetails);
-	translate = glm::vec3(10.0f, terreno->Superficie(10.0f, 60.0f) , 60.0f);
-	scale = glm::vec3(0.02f, 0.02f, 0.02f);	// it's a bit too big for our scene, so scale it down
-	silly->setTranslate(&translate);
-	silly->setNextTranslate(&translate);
-	silly->setScale(&scale);
-	silly->setNextRotY(180);
-	ourModel.emplace_back(silly);
-	try{
-		std::vector<Animation> animations = Animation::loadAllAnimations("models/Silly_Dancing/Silly_Dancing.fbx", silly->GetBoneInfoMap(), silly->getBonesInfo(), silly->GetBoneCount());
+
+	Model* agua = new Model("models/agua.fbx", main->cameraDetails);
+	agua->ignoreAABB = true;
+	translate = glm::vec3(-105.0f, 3.5f, -104.0f);
+	scale = glm::vec3(25.1f, 4.1f, 25.1f);
+
+	agua->setTranslate(&translate);
+	agua->setNextTranslate(&translate);
+	agua->setScale(&scale);
+
+	ourModel.emplace_back(agua);
+	try {
+		std::vector<Animation> animations = Animation::loadAllAnimations("models/agua.fbx", agua->GetBoneInfoMap(), agua->getBonesInfo(), agua->GetBoneCount());
 		for (Animation animation : animations)
-			silly->setAnimator(Animator(animation));
-		silly->setAnimation(0);
-	}catch(...){
+			agua->setAnimator(Animator(animation));
+		agua->setAnimation(0);
+	}
+	catch (...) {
 		ERRORL("Could not load animation!", "ANIMACION");
 	}
-	model = CollitionBox::GenerateAABB(translate, silly->AABBsize, main->cameraDetails);
-	m.hitbox = model; // Le decimos al ultimo ModelAttribute que tiene un hitbox asignado
-	silly->getModelAttributes()->push_back(m);
-	translate.x += 10;
-	silly->setTranslate(&translate, silly->getModelAttributes()->size()-1);
-	silly->setNextTranslate(&translate, silly->getModelAttributes()->size()-1);
-	silly->setScale(&scale, silly->getModelAttributes()->size()-1);
-	silly->setNextRotY(180, silly->getModelAttributes()->size()-1);
-	silly->setRotY(180, silly->getModelAttributes()->size()-1);
 
-	// Import model and clone with bones and animations
-	model = new Model("models/Silly_Dancing/Silly_Dancing.fbx", main->cameraDetails);
-	translate = glm::vec3(30.0f, terreno->Superficie(30.0f, 60.0f) , 60.0f);
-	scale = glm::vec3(0.02f, 0.02f, 0.02f);	// it's a bit too big for our scene, so scale it down
-	model->name = "Silly_Dancing1";
-	model->setTranslate(&translate);
-	model->setNextTranslate(&translate);
-	model->setScale(&scale);
-	model->setNextRotY(180);
-	ourModel.emplace_back(model);
-	// Para clonar la animacion se eliminan los huesos del modelo actual y se copian los modelos y animators
-	model->GetBoneInfoMap()->clear();
-	model->getBonesInfo()->clear();
-	*model->GetBoneInfoMap() = *silly->GetBoneInfoMap();
-	*model->getBonesInfo() = *silly->getBonesInfo();
-	model->setAnimator(silly->getAnimator());
-
-	model = model->clone();
-	translate = glm::vec3(30.0f, terreno->Superficie(30.0f, 80.0f) , 80.0f);
-	scale = glm::vec3(0.02f, 0.02f, 0.02f);	// it's a bit too big for our scene, so scale it down
-	model->name = "Silly_Dancing_cloned";
-	model->setTranslate(&translate);
-	model->setNextTranslate(&translate);
-	model->setScale(&scale);
-	model->setNextRotY(180);
-	ourModel.emplace_back(model);
-
-	//	model = new Model("models/IronMan.obj", main->cameraDetails);
-//	translate = glm::vec3(0.0f, 20.0f, 30.0f);
-//	scale = glm::vec3(0.025f, 0.025f, 0.025f);	// it's a bit too big for our scene, so scale it down
-//	model->setScale(&scale);
-//	model->setTranslate(&translate);
-//	ourModel.emplace_back(model);
-	
 	inicializaBillboards();
 	std::wstring prueba(L"Esta es una prueba");
 	ourText.emplace_back(new Texto(prueba, 0.30, 0, 0, SCR_HEIGHT, 0, model->cameraDetails));
@@ -182,7 +141,6 @@ Scene* Scenario::Render() {
 	sky->Draw();
 	// Ahora el terreno
 	terreno->Draw();
-	water->Draw();
 	// Dibujamos cada billboard que este cargado en el arreglo de billboards.
 	for (int i = 0; i < billBoard.size(); i++)
 		billBoard[i]->Draw();
@@ -241,10 +199,6 @@ Scenario::~Scenario() {
 	if (this->terreno != NULL) {
 		delete this->terreno;
 		this->terreno = NULL;
-	}
-	if (this->water != NULL) {
-		delete this->water;
-		this->water = NULL;
 	}
 	if (billBoard.size() > 0)
 		for (int i = 0; i < billBoard.size(); i++)

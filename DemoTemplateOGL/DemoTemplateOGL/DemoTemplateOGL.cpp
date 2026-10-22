@@ -116,27 +116,37 @@ int startGameEngine(void *ptrMsg){
     //5, ye - 1,-5
     //MainModel *model = new MainModel(hWnd, "models/Cube.obj", translate);
     Camera* camera = Camera::getInstance();
-    Model* model = new Model("models/BaseSpiderman/BaseSpiderman.obj", translate, camera);
-    model->setTranslate(&translate);
+    Model* Idle = new Model("models/Personaje/Farmer_Idle.fbx", translate, camera);
+    try {
+        std::vector<Animation> animations = Animation::loadAllAnimations("models/Personaje/Farmer_Idle.fbx", Idle->GetBoneInfoMap(), Idle->getBonesInfo(), Idle->GetBoneCount());
+        for (Animation animation : animations)
+            Idle->setAnimator(Animator(animation));
+        Idle->setAnimation(0);
+    }
+    catch (...) {
+        ERRORL("Could not load animation!", "ANIMACION");
+    }
+
+    Idle->setTranslate(&translate);
     camera->setFront(v);
     camera->setCharacterHeight(4.0);
     scale = glm::vec3(1.0f, 1.0f, 1.0f);	// it's a bit too big for our scene, so scale it down
-    model->setScale(&scale);
-    model->setTranslate(&translate);
+    Idle->setScale(&scale);
+    Idle->setTranslate(&translate);
     Texto *fps = NULL;
     Texto *coordenadas = NULL;
     try{
-        OGLobj = new Scenario(model); // Creamos nuestra escena con esa posicion de inicio
+        OGLobj = new Scenario(Idle); // Creamos nuestra escena con esa posicion de inicio
         translate = glm::vec3(5.0f, OGLobj->getTerreno()->Superficie(5.0, -5.0), -5.0f);
-        model->setTranslate(&translate);
-        model->setNextTranslate(&translate);
+        Idle->setTranslate(&translate);
+        Idle->setNextTranslate(&translate);
         renderiza = false;
 
         int running = 1;
-        fps = new Texto((WCHAR*)L"0 fps", 0.30, 0, 0, 40, 0, model->cameraDetails);
+        fps = new Texto((WCHAR*)L"0 fps", 0.30, 0, 0, 40, 0, Idle->cameraDetails);
         fps->name = "FPSCounter";
         OGLobj->getLoadedText()->emplace_back(fps);
-        coordenadas = new Texto((WCHAR*)L"0", 0.30, 0, 0, 0, 0, model->cameraDetails);
+        coordenadas = new Texto((WCHAR*)L"0", 0.30, 0, 0, 0, 0, Idle->cameraDetails);
         coordenadas->name = "Coordenadas";
         OGLobj->getLoadedText()->emplace_back(coordenadas);
         updatePosCords(coordenadas);
@@ -170,10 +180,10 @@ int startGameEngine(void *ptrMsg){
         }
     }catch(...){
     }
-    model = OGLobj != NULL ? OGLobj->getMainModel() : model;
+    Idle = OGLobj != NULL ? OGLobj->getMainModel() : Idle;
     if (OGLobj != NULL) delete OGLobj;
     if (camera != NULL) delete camera;
-    if (model != NULL) delete model;
+    if (Idle != NULL) delete Idle;
     if (fps != NULL) delete fps;
     if (coordenadas != NULL) delete coordenadas;
     font_atlas::clearInstance();

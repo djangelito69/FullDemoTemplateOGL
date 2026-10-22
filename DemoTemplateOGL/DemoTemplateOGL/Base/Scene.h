@@ -93,7 +93,7 @@ class Scene {
 			Model *camara = getMainModel();
 			for (int i = 0; i < ourModel->size(); i++) {
 				Model *model = (*ourModel)[i];
-				if (model != camara) {
+				if (model != camara && !model->ignoreAABB) {
 					if (camara->colisionaCon(model->getModelAttributes()->at(0), yPos, collitionMovement)) {
 						return model;
 					}

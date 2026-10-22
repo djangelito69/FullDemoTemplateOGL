@@ -28,7 +28,6 @@ private:
 	std::vector<Model*> ourModel;
 	spritesec* arbolPino = nullptr;
 	Model* camara;
-	Water* water;
 	float angulo;
 	double tiempoAnimacionPino = 0.0;
 	std::vector<Texto*> ourText;

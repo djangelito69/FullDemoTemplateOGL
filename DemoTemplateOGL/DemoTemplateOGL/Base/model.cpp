@@ -389,6 +389,10 @@ ModelCollider Model::update(float terrainY, std::vector<Model*>& models, glm::ve
     yPos = glm::vec3(0);
     for (int i = 0; i < models.size(); i++) {
         Model *other = models[i];
+        // Models marked with ignoreAABB are render-only and must not be
+        // considered collision targets by other models.
+        if (other->ignoreAABB)
+            continue;
         for (int j = 0; j < other->getModelAttributes()->size(); j++) {
             if (this != other && this->colisionaCon(other->getModelAttributes()->at(j), yPos, thisInMovement, idx)) {
     //            bool objInMovement = (*other->getNextTranslate()) != (*other->getTranslate());
