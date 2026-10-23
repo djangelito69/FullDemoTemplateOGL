@@ -40,17 +40,16 @@ void Scenario::InitGraph(Model* main) {
 	ModelAttributes m;
 
 
-	model = new Model("models/dancing_vampire/dancing_vampire.dae", main->cameraDetails);
-	translate = glm::vec3(0.0f, terreno->Superficie(0.0f, 60.0f), 60.0f);
-	scale = glm::vec3(0.02f, 0.02f, 0.02f);	// it's a bit too big for our scene, so scale it down
+	model = new Model("models/Especial/FLOR.fbx", main->cameraDetails);
+	translate = glm::vec3(136.0f, 6.7f, -86.0f);
+	scale = glm::vec3(3.0f, 3.0f, 3.0f);
 	model->setTranslate(&translate);
 	model->setNextTranslate(&translate);
 	model->setScale(&scale);
-	model->setNextRotY(90);
 	ourModel.emplace_back(model);
 	try{
-		std::vector<Animation> animations = Animation::loadAllAnimations("models/dancing_vampire/dancing_vampire.dae", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
-		std::vector<Animation> animation = Animation::loadAllAnimations("models/dancing_vampire/dancing_vampire.dae", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+		std::vector<Animation> animations = Animation::loadAllAnimations("models/Especial/FLOR.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+		std::vector<Animation> animation = Animation::loadAllAnimations("models/Especial/FLOR.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
 		std::move(animation.begin(), animation.end(), std::back_inserter(animations));
 		for (Animation animation : animations)
 			model->setAnimator(Animator(animation));
@@ -59,9 +58,160 @@ void Scenario::InitGraph(Model* main) {
 		ERRORL("Could not load animation!", "ANIMACION");
 	}
 
+	/*
+	Model* muro1 = new Model("models/arbol/MURO.fbx", main->cameraDetails);
+	translate = glm::vec3(200.0f, 7.0f, 0.0f);
+	scale = glm::vec3(1.0f, 200.0f, 20.0f);
+	muro1->setTranslate(&translate);
+	muro1->setNextTranslate(&translate);
+	muro1->setScale(&scale);
+	muro1->setRotX(90.0f);
+	muro1->setNextRotX(90.0f);
+	muro1->ignoreAABB = false;
+	muro1->walkeable = false;
+	ourModel.emplace_back(muro1);
+
+	Model* muro2 = new Model("models/arbol/MURO.fbx", main->cameraDetails);
+	translate = glm::vec3(-200.0f, 7.0f, 0.0f);
+	scale = glm::vec3(1.0f, 200.0f, 20.0f);
+	muro2->setTranslate(&translate);
+	muro2->setNextTranslate(&translate);
+	muro2->setScale(&scale);
+	muro2->setRotX(90.0f);
+	muro2->setNextRotX(90.0f);
+	muro2->ignoreAABB = false;
+	muro2->walkeable = false;
+	ourModel.emplace_back(muro2);
+
+	Model* muro3 = new Model("models/arbol/MURO.fbx", main->cameraDetails);
+	translate = glm::vec3(0.0f, 7.0f, 200.0f);
+	scale = glm::vec3(1.0f, 200.0f, 20.0f);
+	muro3->setTranslate(&translate);
+	muro3->setNextTranslate(&translate);
+	muro3->setScale(&scale);
+	muro3->setRotX(90.0f);
+	muro3->setNextRotX(90.0f);
+	muro3->setRotY(90.0f);
+	muro3->setNextRotY(90.0f);
+	muro3->ignoreAABB = false;
+	muro3->walkeable = false;
+	ourModel.emplace_back(muro3);
+
+	Model* muro4 = new Model("models/arbol/MURO.fbx", main->cameraDetails);
+	translate = glm::vec3(0.0f, 7.0f, -200.0f);
+	scale = glm::vec3(1.0f, 200.0f, 20.0f);
+	muro4->setTranslate(&translate);
+	muro4->setNextTranslate(&translate);
+	muro4->setScale(&scale);
+	muro4->setRotX(90.0f);
+	muro4->setNextRotX(90.0f);
+	muro4->setRotY(90.0f);
+	muro4->setNextRotY(90.0f);
+	muro4->ignoreAABB = false;
+	muro4->walkeable = false;
+	ourModel.emplace_back(muro4);
+	*/
+
+	Model* ufo = new Model("models/Casa/UFO.fbx", main->cameraDetails);
+	translate = glm::vec3(0.5f, 50.0f, -0.5f);
+	scale = glm::vec3(35.0f, 35.0f, 30.0f);
+	ufo->setTranslate(&translate);
+	ufo->setNextTranslate(&translate);
+	ufo->setScale(&scale);
+	ufo->setRotX(270.0f);
+	ufo->setNextRotX(270.0f);
+	ufo->setRotZ(270.0f);
+	ufo->setNextRotZ(270.0f);
+	ufo->ignoreAABB = true;
+	ufo->walkeable = false;
+	ourModel.emplace_back(ufo);
+
+	Model* hay1 = new Model("models/Casa/HAYBALE.fbx", main->cameraDetails);
+	translate = glm::vec3(168.5f, 6.0f, -130.5f);
+	scale = glm::vec3(2.0f, 2.0f, 3.0f);
+	hay1->setTranslate(&translate);
+	hay1->setNextTranslate(&translate);
+	hay1->setScale(&scale);
+	hay1->setRotZ(270.0f);
+	hay1->setNextRotZ(270.0f);
+	hay1->ignoreAABB = false;
+	hay1->walkeable = false;
+	ourModel.emplace_back(hay1);
+
+	Model* hay2 = new Model("models/Casa/HAYBALE.fbx", main->cameraDetails);
+	translate = glm::vec3(168.5f, 6.0f, -124.5f);
+	scale = glm::vec3(2.0f, 2.0f, 3.0f);
+	hay2->setTranslate(&translate);
+	hay2->setNextTranslate(&translate);
+	hay2->setScale(&scale);
+	hay2->setRotZ(270.0f);
+	hay2->setNextRotZ(270.0f);
+	hay2->ignoreAABB = false;
+	hay2->walkeable = false;
+	ourModel.emplace_back(hay2);
+
+	Model* hay3 = new Model("models/Casa/HAYBALE.fbx", main->cameraDetails);
+	translate = glm::vec3(168.5f, 6.0f, -118.5f);
+	scale = glm::vec3(2.0f, 2.0f, 3.0f);
+	hay3->setTranslate(&translate);
+	hay3->setNextTranslate(&translate);
+	hay3->setScale(&scale);
+	hay3->setRotZ(270.0f);
+	hay3->setNextRotZ(270.0f);
+	hay3->ignoreAABB = false;
+	hay3->walkeable = false;
+	ourModel.emplace_back(hay3);
+
+
+	Model* casa = new Model("models/Casa/CASA.fbx", main->cameraDetails);
+	translate = glm::vec3(159.5f, 16.0f, -121.5f);
+	scale = glm::vec3(0.12f, 0.12f, 0.12f);
+	casa->setTranslate(&translate);
+	casa->setNextTranslate(&translate);
+	casa->setScale(&scale);
+	casa->setRotX(270.0f);
+	casa->setNextRotX(270.0f);
+	casa->setRotZ(270.0f);
+	casa->setNextRotZ(270.0f);
+	casa->ignoreAABB = true;
+	casa->walkeable = false;
+	ourModel.emplace_back(casa);
+
+	Model* mesa = new Model("models/Casa/MESA.fbx", main->cameraDetails);
+	translate = glm::vec3(159.5f, 7.0f, -121.5f);
+	scale = glm::vec3(5.0f, 5.0f, 2.0f);
+	mesa->setTranslate(&translate);
+	mesa->setNextTranslate(&translate);
+	mesa->setScale(&scale);
+	mesa->setRotX(270.0f);
+	mesa->setNextRotX(270.0f);
+	mesa->setRotZ(270.0f);
+	mesa->setNextRotZ(270.0f);
+	mesa->ignoreAABB = false;
+	mesa->walkeable = false;
+	ourModel.emplace_back(mesa);
+
+	Model* aid = new Model("models/Casa/AID.fbx", main->cameraDetails);
+	translate = glm::vec3(159.5f, 8.0f, -121.5f);
+	scale = glm::vec3(5.0f, 5.0f, 2.0f);
+	aid->setTranslate(&translate);
+	aid->setNextTranslate(&translate);
+	aid->setScale(&scale);
+	aid->setRotX(270.0f);
+	aid->setNextRotX(270.0f);
+	aid->setRotZ(270.0f);
+	aid->setNextRotZ(270.0f);
+	aid->ignoreAABB = false;
+	aid->walkeable = false;
+	ourModel.emplace_back(aid);
+
+
+
+
 
 	Model* agua = new Model("models/agua.fbx", main->cameraDetails);
 	agua->ignoreAABB = true;
+	agua->walkeable = false;
 	translate = glm::vec3(-105.0f, 3.5f, -104.0f);
 	scale = glm::vec3(25.1f, 4.1f, 25.1f);
 
@@ -80,63 +230,336 @@ void Scenario::InitGraph(Model* main) {
 		ERRORL("Could not load animation!", "ANIMACION");
 	}
 
-	inicializaBillboards();
+	inicializaArboles();
+	inicializaTrigo();
+	inicializaPollos();
+	inicializaPuercos();
+	inicializaVacas();
+	inicializaOvejas();
 	std::wstring prueba(L"Esta es una prueba");
 	ourText.emplace_back(new Texto(prueba, 0.30, 0, 0, SCR_HEIGHT, 0, model->cameraDetails));
 	billBoard2D.emplace_back(new Billboard2D((WCHAR*)L"billboards/awesomeface.png", 6, 6, 100, 200, 0, camara->cameraDetails));
-	scale = glm::vec3(100.0f, 100.0f, 0.0f);	// it's a bit too big for our scene, so scale it down
+	scale = glm::vec3(100.0f, 100.0f, 0.0f);
 	billBoard2D.back()->setScale(&scale);
 	}
 
-	// ANIMACION DEL ARBOL?
+	void Scenario::inicializaArboles() {
+		const int cantidadArboles = 70;
+		const float limiteX = 190.0f;
+		const float limiteZ = 190.0f;
 
-void Scenario::inicializaBillboards() {
-	const int cantidadArboles = 70;
-	const float limiteX = 190.0f;
-	const float limiteZ = 190.0f;
-	const float alturaArbol = 10.5f;
+		std::random_device semilla;
+		std::mt19937 generador(semilla());
+		std::uniform_real_distribution<float> distribucionX(-limiteX, limiteX);
+		std::uniform_real_distribution<float> distribucionZ(-limiteZ, limiteZ);
 
-	std::random_device semilla;
-	std::mt19937 generador(semilla());
-	std::uniform_real_distribution<float> distribucionX(-limiteX, limiteX);
-	std::uniform_real_distribution<float> distribucionZ(-limiteZ, limiteZ);
+		glm::vec3 scale = glm::vec3(3.0f, 4.0f, 3.0f);
 
-	float x = distribucionX(generador);
-	float z = distribucionZ(generador);
-	float ye = terreno->Superficie(x, z) + alturaArbol;
-
-	std::vector<std::wstring> texturasPino = {
-		L"billboards/Pino1.png",
-		L"billboards/Pino2.png"
-	};
-	arbolPino = new spritesec(texturasPino, 16, 22, x, ye, z, camara->cameraDetails);
-	billBoard.emplace_back(arbolPino);
-
-	for (int i = 1; i < cantidadArboles; i++) {
-		x = distribucionX(generador);
-		z = distribucionZ(generador);
-		ye = terreno->Superficie(x, z) + alturaArbol;
-
-		ModelAttributes mAttr;
+		float x = distribucionX(generador);
+		float z = distribucionZ(generador);
+		float ye = terreno->Superficie(x, z);
 		glm::vec3 pos(x, ye, z);
-		mAttr.setTranslate(&pos);
-		arbolPino->getModelAttributes()->push_back(mAttr);
+
+		Model* basePino = new Model("models/arbol/Pino.fbx", camara->cameraDetails);
+		try {
+			std::vector<Animation> animations = Animation::loadAllAnimations("models/arbol/Pino.fbx", basePino->GetBoneInfoMap(), basePino->getBonesInfo(), basePino->GetBoneCount());
+			for (Animation animation : animations)
+				basePino->setAnimator(Animator(animation));
+			basePino->setAnimation(0);
+		}
+		catch (...) {
+			ERRORL("Could not load tree animation!", "ANIMACION");
+		}
+
+		basePino->setScale(&scale);
+		basePino->setTranslate(&pos);
+		basePino->setNextTranslate(&pos);
+		basePino->walkeable = false;
+		basePino->ignoreAABB = true;
+		ourModel.emplace_back(basePino);
+
+		for (int i = 1; i < cantidadArboles; i++) {
+			x = distribucionX(generador);
+			z = distribucionZ(generador);
+			ye = terreno->Superficie(x, z);
+			pos = glm::vec3(x, ye, z);
+
+			Model* clon = basePino->clone();
+			clon->setScale(&scale);
+			clon->setTranslate(&pos);
+			clon->setNextTranslate(&pos);
+			clon->walkeable = false;
+			ourModel.emplace_back(clon);
+		}
+
+		ye = terreno->Superficie(-9, -15) + 4;
 	}
 
-	ye = terreno->Superficie(-9, -15) + 4;
-	billBoard.emplace_back(new Billboard((WCHAR*)L"billboards/Arbol3.png", 8, 8, -9, ye, -15, camara->cameraDetails));
-}
 
-	//el metodo render toma el dispositivo sobre el cual va a dibujar
-	//y hace su tarea ya conocida
+	void Scenario::inicializaTrigo() {
+		const int cantidadTrigo = 150;
+		const float limiteX = 190.0f;
+		const float limiteZ = 190.0f;
+
+		std::random_device semilla;
+		std::mt19937 generador(semilla());
+		std::uniform_real_distribution<float> distribucionX(-limiteX, limiteX);
+		std::uniform_real_distribution<float> distribucionZ(-limiteZ, limiteZ);
+
+		glm::vec3 scale = glm::vec3(6.0f, 6.0f, 6.0f);
+
+		float x = distribucionX(generador);
+		float z = distribucionZ(generador);
+		float ye = terreno->Superficie(x, z);
+		glm::vec3 pos(x, ye, z);
+
+		Model* trigo = new Model("models/arbol/trigo.fbx", camara->cameraDetails);
+		try {
+			std::vector<Animation> animations = Animation::loadAllAnimations("models/arbol/trigo.fbx", trigo->GetBoneInfoMap(), trigo->getBonesInfo(), trigo->GetBoneCount());
+			for (Animation animation : animations)
+				trigo->setAnimator(Animator(animation));
+			trigo->setAnimation(0);
+		}
+		catch (...) {
+			ERRORL("Could not load wheat animation!", "ANIMACION");
+		}
+
+		trigo->setScale(&scale);
+		trigo->setTranslate(&pos);
+		trigo->setNextTranslate(&pos);
+		trigo->walkeable = false;
+		trigo->ignoreAABB = true;
+		ourModel.emplace_back(trigo);
+
+		for (int i = 1; i < cantidadTrigo; i++) {
+			x = distribucionX(generador);
+			z = distribucionZ(generador);
+			ye = terreno->Superficie(x, z);
+			pos = glm::vec3(x, ye, z);
+
+			Model* clon = trigo->clone();
+			clon->setScale(&scale);
+			clon->setTranslate(&pos);
+			clon->setNextTranslate(&pos);
+			clon->walkeable = false;
+			ourModel.emplace_back(clon);
+		}
+
+		ye = terreno->Superficie(-9, -15) + 4;
+	}
+
+	void Scenario::inicializaPollos() {
+		const int cantidadPollos = 25;
+		const float limiteX = 190.0f;
+		const float limiteZ = 190.0f;
+
+		std::random_device semilla;
+		std::mt19937 generador(semilla());
+		std::uniform_real_distribution<float> distribucionX(-limiteX, limiteX);
+		std::uniform_real_distribution<float> distribucionZ(-limiteZ, limiteZ);
+
+		glm::vec3 scale = glm::vec3(1.5f, 1.5f, 1.5f);
+
+		float x = distribucionX(generador);
+		float z = distribucionZ(generador);
+		float ye = terreno->Superficie(x, z);
+		glm::vec3 pos(x, ye, z);
+
+		Model* pollo = new Model("models/Animales/POLLITO.fbx", camara->cameraDetails);
+		try {
+			std::vector<Animation> animations = Animation::loadAllAnimations("models/Animales/POLLITO.fbx", pollo->GetBoneInfoMap(), pollo->getBonesInfo(), pollo->GetBoneCount());
+			for (Animation animation : animations)
+				pollo->setAnimator(Animator(animation));
+			pollo->setAnimation(0);
+		}
+		catch (...) {
+			ERRORL("Could not load pollos animation!", "ANIMACION");
+		}
+
+		pollo->setScale(&scale);
+		pollo->setTranslate(&pos);
+		pollo->setNextTranslate(&pos);
+		pollo->walkeable = false;
+		pollo->ignoreAABB = true;
+		ourModel.emplace_back(pollo);
+
+		for (int i = 1; i < cantidadPollos; i++) {
+			x = distribucionX(generador);
+			z = distribucionZ(generador);
+			ye = terreno->Superficie(x, z);
+			pos = glm::vec3(x, ye, z);
+
+			Model* clon = pollo->clone();
+			clon->setScale(&scale);
+			clon->setTranslate(&pos);
+			clon->setNextTranslate(&pos);
+			clon->walkeable = false;
+			ourModel.emplace_back(clon);
+		}
+
+		ye = terreno->Superficie(-9, -15) + 4;
+	}
+
+	void Scenario::inicializaPuercos() {
+		const int cantidadPuercos = 10;
+		const float limiteX = 190.0f;
+		const float limiteZ = 190.0f;
+
+		std::random_device semilla;
+		std::mt19937 generador(semilla());
+		std::uniform_real_distribution<float> distribucionX(-limiteX, limiteX);
+		std::uniform_real_distribution<float> distribucionZ(-limiteZ, limiteZ);
+
+		glm::vec3 scale = glm::vec3(1.5f, 1.5f, 1.5f);
+
+		float x = distribucionX(generador);
+		float z = distribucionZ(generador);
+		float ye = terreno->Superficie(x, z);
+		glm::vec3 pos(x, ye, z);
+
+		Model* puerco = new Model("models/Animales/PUERCO.fbx", camara->cameraDetails);
+		try {
+			std::vector<Animation> animations = Animation::loadAllAnimations("models/Animales/PUERCO.fbx", puerco->GetBoneInfoMap(), puerco->getBonesInfo(), puerco->GetBoneCount());
+			for (Animation animation : animations)
+				puerco->setAnimator(Animator(animation));
+			puerco->setAnimation(0);
+		}
+		catch (...) {
+			ERRORL("Could not load puerco animation!", "ANIMACION");
+		}
+
+		puerco->setScale(&scale);
+		puerco->setTranslate(&pos);
+		puerco->setNextTranslate(&pos);
+		puerco->walkeable = false;
+		puerco->ignoreAABB = true;
+		ourModel.emplace_back(puerco);
+
+		for (int i = 1; i < cantidadPuercos; i++) {
+			x = distribucionX(generador);
+			z = distribucionZ(generador);
+			ye = terreno->Superficie(x, z);
+			pos = glm::vec3(x, ye, z);
+
+			Model* clon = puerco->clone();
+			clon->setScale(&scale);
+			clon->setTranslate(&pos);
+			clon->setNextTranslate(&pos);
+			clon->walkeable = false;
+			ourModel.emplace_back(clon);
+		}
+
+		ye = terreno->Superficie(-9, -15) + 4;
+	}
+
+	void Scenario::inicializaVacas() {
+		const int cantidadVacas = 8;
+		const float limiteX = 190.0f;
+		const float limiteZ = 190.0f;
+
+		std::random_device semilla;
+		std::mt19937 generador(semilla());
+		std::uniform_real_distribution<float> distribucionX(-limiteX, limiteX);
+		std::uniform_real_distribution<float> distribucionZ(-limiteZ, limiteZ);
+
+		glm::vec3 scale = glm::vec3(1.5f, 1.5f, 1.5f);
+
+		float x = distribucionX(generador);
+		float z = distribucionZ(generador);
+		float ye = terreno->Superficie(x, z);
+		glm::vec3 pos(x, ye, z);
+
+		Model* vaca = new Model("models/Animales/VACA.fbx", camara->cameraDetails);
+		try {
+			std::vector<Animation> animations = Animation::loadAllAnimations("models/Animales/VACA.fbx", vaca->GetBoneInfoMap(), vaca->getBonesInfo(), vaca->GetBoneCount());
+			for (Animation animation : animations)
+				vaca->setAnimator(Animator(animation));
+			vaca->setAnimation(0);
+		}
+		catch (...) {
+			ERRORL("Could not load vacas animation!", "ANIMACION");
+		}
+
+		vaca->setScale(&scale);
+		vaca->setTranslate(&pos);
+		vaca->setNextTranslate(&pos);
+		vaca->walkeable = false;
+		vaca->ignoreAABB = true;
+		ourModel.emplace_back(vaca);
+
+		for (int i = 1; i < cantidadVacas; i++) {
+			x = distribucionX(generador);
+			z = distribucionZ(generador);
+			ye = terreno->Superficie(x, z);
+			pos = glm::vec3(x, ye, z);
+
+			Model* clon = vaca->clone();
+			clon->setScale(&scale);
+			clon->setTranslate(&pos);
+			clon->setNextTranslate(&pos);
+			clon->walkeable = false;
+			ourModel.emplace_back(clon);
+		}
+
+		ye = terreno->Superficie(-9, -15) + 4;
+	}
+
+	void Scenario::inicializaOvejas() {
+		const int cantidadOvejas = 8;
+		const float limiteX = 190.0f;
+		const float limiteZ = 190.0f;
+
+		std::random_device semilla;
+		std::mt19937 generador(semilla());
+		std::uniform_real_distribution<float> distribucionX(-limiteX, limiteX);
+		std::uniform_real_distribution<float> distribucionZ(-limiteZ, limiteZ);
+
+		glm::vec3 scale = glm::vec3(1.5f, 1.5f, 1.5f);
+
+		float x = distribucionX(generador);
+		float z = distribucionZ(generador);
+		float ye = terreno->Superficie(x, z);
+		glm::vec3 pos(x, ye, z);
+
+		Model* oveja = new Model("models/Animales/OVEJA.fbx", camara->cameraDetails);
+		try {
+			std::vector<Animation> animations = Animation::loadAllAnimations("models/Animales/OVEJA.fbx", oveja->GetBoneInfoMap(), oveja->getBonesInfo(), oveja->GetBoneCount());
+			for (Animation animation : animations)
+				oveja->setAnimator(Animator(animation));
+			oveja->setAnimation(0);
+		}
+		catch (...) {
+			ERRORL("Could not load ovejas animation!", "ANIMACION");
+		}
+
+		oveja->setScale(&scale);
+		oveja->setTranslate(&pos);
+		oveja->setNextTranslate(&pos);
+		oveja->walkeable = false;
+		oveja->ignoreAABB = true;
+		ourModel.emplace_back(oveja);
+
+		for (int i = 1; i < cantidadOvejas; i++) {
+			x = distribucionX(generador);
+			z = distribucionZ(generador);
+			ye = terreno->Superficie(x, z);
+			pos = glm::vec3(x, ye, z);
+
+			Model* clon = oveja->clone();
+			clon->setScale(&scale);
+			clon->setTranslate(&pos);
+			clon->setNextTranslate(&pos);
+			clon->walkeable = false;
+			ourModel.emplace_back(clon);
+		}
+
+		ye = terreno->Superficie(-9, -15) + 4;
+	}
+
+
+
 Scene* Scenario::Render() {
 	clearScreen();
-
-	tiempoAnimacionPino += gameTime.deltaTime;
-	if (tiempoAnimacionPino >= 800.0 && arbolPino != nullptr) {
-		tiempoAnimacionPino -= 800.0;
-		arbolPino->siguienteTextura();
-	}
 	// Decimos que dibuje la media esfera
 	sky->Draw();
 	// Ahora el terreno

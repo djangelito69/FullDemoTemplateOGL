@@ -102,8 +102,10 @@ public:
             float offsetZ = dHorizontal * glm::cos(glm::radians(theta));
             getPosition().x = pTrans->x - offsetX;
             getPosition().z = pTrans->z - offsetZ;
-            getPosition().y = pTrans->y + dVertical;
-        } else {
+            getPosition().y = pTrans->y + characterHeight + dVertical;
+
+        }
+        else {
             setPosition(*pTrans);
             getPosition().y += characterHeight;
         }

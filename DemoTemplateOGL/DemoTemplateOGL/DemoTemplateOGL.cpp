@@ -116,37 +116,40 @@ int startGameEngine(void *ptrMsg){
     //5, ye - 1,-5
     //MainModel *model = new MainModel(hWnd, "models/Cube.obj", translate);
     Camera* camera = Camera::getInstance();
-    Model* Idle = new Model("models/Personaje/Farmer_Idle.fbx", translate, camera);
+    Model* model = new Model("models/Personaje/Idle.fbx", translate, camera);
     try {
-        std::vector<Animation> animations = Animation::loadAllAnimations("models/Personaje/Farmer_Idle.fbx", Idle->GetBoneInfoMap(), Idle->getBonesInfo(), Idle->GetBoneCount());
+        std::vector<Animation> animations = Animation::loadAllAnimations("models/Personaje/Idle.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+        std::vector<Animation> animation = Animation::loadAllAnimations("models/Personaje/Run.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+        std::move(animation.begin(), animation.end(), std::back_inserter(animations));
         for (Animation animation : animations)
-            Idle->setAnimator(Animator(animation));
-        Idle->setAnimation(0);
+            model->setAnimator(Animator(animation));
+        model->setAnimation(0);
     }
     catch (...) {
         ERRORL("Could not load animation!", "ANIMACION");
     }
 
-    Idle->setTranslate(&translate);
+
+    model->setTranslate(&translate);
     camera->setFront(v);
-    camera->setCharacterHeight(4.0);
-    scale = glm::vec3(1.0f, 1.0f, 1.0f);	// it's a bit too big for our scene, so scale it down
-    Idle->setScale(&scale);
-    Idle->setTranslate(&translate);
+    camera->setCharacterHeight(6.5);
+    scale = glm::vec3(1.7f, 1.7f, 1.7f);	// it's a bit too big for our scene, so scale it down
+    model->setScale(&scale);
+    model->setTranslate(&translate);
     Texto *fps = NULL;
     Texto *coordenadas = NULL;
     try{
-        OGLobj = new Scenario(Idle); // Creamos nuestra escena con esa posicion de inicio
-        translate = glm::vec3(5.0f, OGLobj->getTerreno()->Superficie(5.0, -5.0), -5.0f);
-        Idle->setTranslate(&translate);
-        Idle->setNextTranslate(&translate);
+        OGLobj = new Scenario(model); // Creamos nuestra escena con esa posicion de inicio
+        translate = glm::vec3(140.0f, 10.0f, -121.5f);
+        model->setTranslate(&translate);
+        model->setNextTranslate(&translate);
         renderiza = false;
 
         int running = 1;
-        fps = new Texto((WCHAR*)L"0 fps", 0.30, 0, 0, 40, 0, Idle->cameraDetails);
+        fps = new Texto((WCHAR*)L"0 fps", 0.30, 0, 0, 40, 0, model->cameraDetails);
         fps->name = "FPSCounter";
         OGLobj->getLoadedText()->emplace_back(fps);
-        coordenadas = new Texto((WCHAR*)L"0", 0.30, 0, 0, 0, 0, Idle->cameraDetails);
+        coordenadas = new Texto((WCHAR*)L"0", 0.30, 0, 0, 0, 0, model->cameraDetails);
         coordenadas->name = "Coordenadas";
         OGLobj->getLoadedText()->emplace_back(coordenadas);
         updatePosCords(coordenadas);
@@ -180,10 +183,10 @@ int startGameEngine(void *ptrMsg){
         }
     }catch(...){
     }
-    Idle = OGLobj != NULL ? OGLobj->getMainModel() : Idle;
+    model = OGLobj != NULL ? OGLobj->getMainModel() : model;
     if (OGLobj != NULL) delete OGLobj;
     if (camera != NULL) delete camera;
-    if (Idle != NULL) delete Idle;
+    if (model != NULL) delete model;
     if (fps != NULL) delete fps;
     if (coordenadas != NULL) delete coordenadas;
     font_atlas::clearInstance();
@@ -206,25 +209,30 @@ bool checkInput(GameActions *actions, Scene* scene) {
         OGLobj->cameraDetails->setFirstPerson(!OGLobj->cameraDetails->getFirstPerson());
     }
     if (actions->sideAdvance != 0) {
-        OGLobj->setNextRotY(OGLobj->getNextRotY() + ((6 * gameTime.deltaTime / 100) * actions->sideAdvance));
+        OGLobj->setNextRotY(OGLobj->getNextRotY() + ((16 * gameTime.deltaTime / 100) * actions->sideAdvance));
     }
+    bool isMoving = (actions->advance != 0 || actions->hAdvance != 0);
+
+    if (isMoving) {
+        OGLobj->setAnimation(1);
+    }
+    else {
+        OGLobj->setAnimation(0);
+    }
+
     if (actions->hAdvance != 0) {
         glm::vec3 pos = *OGLobj->getTranslate();
-        pos.x += actions->hAdvance * (3 * gameTime.deltaTime/100) * glm::cos(glm::radians(OGLobj->getRotY()));
+        pos.x += actions->hAdvance * (3 * gameTime.deltaTime / 100) * glm::cos(glm::radians(OGLobj->getRotY()));
         pos.z += actions->hAdvance * (3 * gameTime.deltaTime / 100) * glm::sin(glm::radians(OGLobj->getRotY()));
-        // Posicionamos la camara/modelo pixeles arriba de su posicion en el terreno
-//        pos.y = *actions->jump > 0 ? pos.y : scene->getTerreno()->Superficie(pos.x, pos.z);
-
         OGLobj->setNextTranslate(&pos);
     }
     if (actions->advance != 0) {
         glm::vec3 pos = *OGLobj->getTranslate();
         pos.x += actions->advance * (3 * gameTime.deltaTime / 100) * glm::sin(glm::radians(OGLobj->getRotY()));
         pos.z += actions->advance * (3 * gameTime.deltaTime / 100) * glm::cos(glm::radians(OGLobj->getRotY()));
-        // Posicionamos la camara/modelo pixeles arriba de su posicion en el terreno
-//        pos.y = *actions->jump > 0 ? pos.y : scene->getTerreno()->Superficie(pos.x, pos.z);
         OGLobj->setNextTranslate(&pos);
     }
+
     if (*actions->jump > 0){
         glm::vec3 pos = *OGLobj->getNextTranslate();
         double del = (*actions->jump) * gameTime.deltaTime / 100;

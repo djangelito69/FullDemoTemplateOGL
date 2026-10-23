@@ -26,17 +26,20 @@ private:
 	std::vector<BillboardAnimation*> billBoardAnim;
 	std::vector<Billboard2D*> billBoard2D;
 	std::vector<Model*> ourModel;
-	spritesec* arbolPino = nullptr;
 	Model* camara;
 	float angulo;
-	double tiempoAnimacionPino = 0.0;
 	std::vector<Texto*> ourText;
 public:
 	Scenario(Camera *cam);
 	Scenario(Model *camIni);
 	void InitGraph(Model *main);
 
-	void inicializaBillboards();
+	void inicializaArboles();
+	void inicializaTrigo();
+	void inicializaPollos();
+	void inicializaPuercos();
+	void inicializaVacas();
+	void inicializaOvejas();
 
 	//el metodo render toma el dispositivo sobre el cual va a dibujar
 	//y hace su tarea ya conocida
