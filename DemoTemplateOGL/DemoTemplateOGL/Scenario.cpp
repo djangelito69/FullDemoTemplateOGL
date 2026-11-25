@@ -1,4 +1,5 @@
 #include "Scenario.h"
+#include "Ammo.h"
 #include <random>
 #ifdef __linux__ 
 #define ZeroMemory(x,y) memset(x,0,y)
@@ -7,7 +8,14 @@
 #endif
 
 Scenario::Scenario(Camera *cam) {
-    glm::vec3 translate;
+	florObjetivo = NULL;
+	puntoSpawnEnemigos = NULL;
+	vidaFlor = NULL;
+	temporizador = NULL;
+	juegoFinalizado = false;
+	juegoGanado = false;
+	angulo = 0;
+	glm::vec3 translate;
 	glm::vec3 scale;
     Model* model = new Model("models/Cube/Cube.obj", cam);
 	translate = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -18,6 +26,13 @@ Scenario::Scenario(Camera *cam) {
 	InitGraph(model);
 }
 Scenario::Scenario(Model *camIni) {
+    florObjetivo = NULL;
+    puntoSpawnEnemigos = NULL;
+    vidaFlor = NULL;
+    temporizador = NULL;
+    juegoFinalizado = false;
+    juegoGanado = false;
+    angulo = 0;
     InitGraph(camIni);
 }
 void Scenario::InitGraph(Model* main) {
@@ -41,6 +56,9 @@ void Scenario::InitGraph(Model* main) {
 
 
 	model = new Model("models/Especial/FLOR.fbx", main->cameraDetails);
+	florObjetivo = model;
+	florObjetivo->name = "Flor";
+	vidaFlor = new VidaFlor(500, 20);
 	translate = glm::vec3(136.0f, 6.7f, -86.0f);
 	scale = glm::vec3(3.0f, 3.0f, 3.0f);
 	model->setTranslate(&translate);
@@ -58,60 +76,6 @@ void Scenario::InitGraph(Model* main) {
 		ERRORL("Could not load animation!", "ANIMACION");
 	}
 
-	/*
-	Model* muro1 = new Model("models/arbol/MURO.fbx", main->cameraDetails);
-	translate = glm::vec3(200.0f, 7.0f, 0.0f);
-	scale = glm::vec3(1.0f, 200.0f, 20.0f);
-	muro1->setTranslate(&translate);
-	muro1->setNextTranslate(&translate);
-	muro1->setScale(&scale);
-	muro1->setRotX(90.0f);
-	muro1->setNextRotX(90.0f);
-	muro1->ignoreAABB = false;
-	muro1->walkeable = false;
-	ourModel.emplace_back(muro1);
-
-	Model* muro2 = new Model("models/arbol/MURO.fbx", main->cameraDetails);
-	translate = glm::vec3(-200.0f, 7.0f, 0.0f);
-	scale = glm::vec3(1.0f, 200.0f, 20.0f);
-	muro2->setTranslate(&translate);
-	muro2->setNextTranslate(&translate);
-	muro2->setScale(&scale);
-	muro2->setRotX(90.0f);
-	muro2->setNextRotX(90.0f);
-	muro2->ignoreAABB = false;
-	muro2->walkeable = false;
-	ourModel.emplace_back(muro2);
-
-	Model* muro3 = new Model("models/arbol/MURO.fbx", main->cameraDetails);
-	translate = glm::vec3(0.0f, 7.0f, 200.0f);
-	scale = glm::vec3(1.0f, 200.0f, 20.0f);
-	muro3->setTranslate(&translate);
-	muro3->setNextTranslate(&translate);
-	muro3->setScale(&scale);
-	muro3->setRotX(90.0f);
-	muro3->setNextRotX(90.0f);
-	muro3->setRotY(90.0f);
-	muro3->setNextRotY(90.0f);
-	muro3->ignoreAABB = false;
-	muro3->walkeable = false;
-	ourModel.emplace_back(muro3);
-
-	Model* muro4 = new Model("models/arbol/MURO.fbx", main->cameraDetails);
-	translate = glm::vec3(0.0f, 7.0f, -200.0f);
-	scale = glm::vec3(1.0f, 200.0f, 20.0f);
-	muro4->setTranslate(&translate);
-	muro4->setNextTranslate(&translate);
-	muro4->setScale(&scale);
-	muro4->setRotX(90.0f);
-	muro4->setNextRotX(90.0f);
-	muro4->setRotY(90.0f);
-	muro4->setNextRotY(90.0f);
-	muro4->ignoreAABB = false;
-	muro4->walkeable = false;
-	ourModel.emplace_back(muro4);
-	*/
-
 	Model* ufo = new Model("models/Casa/UFO.fbx", main->cameraDetails);
 	translate = glm::vec3(0.5f, 50.0f, -0.5f);
 	scale = glm::vec3(35.0f, 35.0f, 30.0f);
@@ -124,6 +88,7 @@ void Scenario::InitGraph(Model* main) {
 	ufo->setNextRotZ(270.0f);
 	ufo->ignoreAABB = true;
 	ufo->walkeable = false;
+	puntoSpawnEnemigos = ufo;
 	ourModel.emplace_back(ufo);
 
 	Model* hay1 = new Model("models/Casa/HAYBALE.fbx", main->cameraDetails);
@@ -164,8 +129,8 @@ void Scenario::InitGraph(Model* main) {
 
 
 	Model* casa = new Model("models/Casa/CASA.fbx", main->cameraDetails);
-	translate = glm::vec3(159.5f, 16.0f, -121.5f);
-	scale = glm::vec3(0.12f, 0.12f, 0.12f);
+	translate = glm::vec3(159.5f, 24.0f, -121.5f);
+	scale = glm::vec3(0.22f, 0.22f, 0.22f);
 	casa->setTranslate(&translate);
 	casa->setNextTranslate(&translate);
 	casa->setScale(&scale);
@@ -176,6 +141,49 @@ void Scenario::InitGraph(Model* main) {
 	casa->ignoreAABB = true;
 	casa->walkeable = false;
 	ourModel.emplace_back(casa);
+
+	//Colisiones de la Casa
+	CollitionBox* paredCasa1 = new CollitionBox(
+		164.13f, 6.2f, -147.1f,
+		26.1f, 6.0f, 1.5f, main->cameraDetails);
+	paredCasa1->name = "ParedCasa1";
+	paredCasa1->ignoreAABB = false;
+	paredCasa1->walkeable = false;
+	ourModel.emplace_back(paredCasa1);
+
+	CollitionBox* paredCasa2 = new CollitionBox(
+		164.13f, 6.2f, -96.3f,
+		26.1f, 6.0f, 1.5f, main->cameraDetails);
+	paredCasa2->name = "ParedCasa2";
+	paredCasa2->ignoreAABB = false;
+	paredCasa2->walkeable = false;
+	ourModel.emplace_back(paredCasa2);
+
+	CollitionBox* paredCasa3 = new CollitionBox(
+		190.3f, 6.2f, -121.3f,
+		1.5f, 6.0f, 25.4f, main->cameraDetails);
+	paredCasa3->name = "ParedCasa3";
+	paredCasa3->ignoreAABB = false;
+	paredCasa3->walkeable = false;
+	ourModel.emplace_back(paredCasa3);
+
+	CollitionBox* paredCasa4 = new CollitionBox(
+		138.0f, 6.2f, -141.9f,
+		1.5f, 6.0f, 5.0f, main->cameraDetails);
+	paredCasa4->name = "ParedCasa4";
+	paredCasa4->ignoreAABB = false;
+	paredCasa4->walkeable = false;
+	ourModel.emplace_back(paredCasa4);
+
+	CollitionBox* paredCasa5 = new CollitionBox(
+		138.13f, 6.2f, -100.0f,
+		1.5f, 6.0f, 5.0f, main->cameraDetails);
+	paredCasa5->name = "ParedCasa5";
+	paredCasa5->ignoreAABB = false;
+	paredCasa5->walkeable = false;
+	ourModel.emplace_back(paredCasa5);
+
+
 
 	Model* mesa = new Model("models/Casa/MESA.fbx", main->cameraDetails);
 	translate = glm::vec3(159.5f, 7.0f, -121.5f);
@@ -191,7 +199,20 @@ void Scenario::InitGraph(Model* main) {
 	mesa->walkeable = false;
 	ourModel.emplace_back(mesa);
 
+	model = new Ammo("models/bullet/bullet_9_mm.glb", main->cameraDetails);
+	translate = glm::vec3(159.5f, 8.0f, -123.5f);
+	scale = glm::vec3(0.10f, 0.10f, 0.10f);
+	model->setTranslate(&translate);
+	model->setNextTranslate(&translate);
+	model->setScale(&scale);
+	model->setRotY(-90);
+	model->setNextRotY(-90);
+	delete model->getModelAttributes()->at(0).hitbox;
+	model->getModelAttributes()->at(0).hitbox = NULL;
+	ourModel.emplace_back(model);
+
 	Model* aid = new Model("models/Casa/AID.fbx", main->cameraDetails);
+	aid->name = "AID";
 	translate = glm::vec3(159.5f, 8.0f, -121.5f);
 	scale = glm::vec3(5.0f, 5.0f, 2.0f);
 	aid->setTranslate(&translate);
@@ -236,11 +257,77 @@ void Scenario::InitGraph(Model* main) {
 	inicializaPuercos();
 	inicializaVacas();
 	inicializaOvejas();
-	std::wstring prueba(L"Esta es una prueba");
-	ourText.emplace_back(new Texto(prueba, 0.30, 0, 0, SCR_HEIGHT, 0, model->cameraDetails));
+	Texto* vidaPrincipal = new Texto((WCHAR*)L"VIDA: 250", 0.35f, 0,
+		SCR_WIDTH - 180.0f, 20.0f, 0, main->cameraDetails);
+	vidaPrincipal->name = "Vida";
+	ourText.emplace_back(vidaPrincipal);
+
+	Texto* vidaFlorTexto = new Texto((WCHAR*)L"VIDA FLOR: 500", 0.35f, 0,
+		SCR_WIDTH - 250.0f, 55.0f, 0, main->cameraDetails);
+	vidaFlorTexto->name = "VidaFlor";
+	ourText.emplace_back(vidaFlorTexto);
+
+	temporizador = new TemporizadorJuego(300.0f);
+	Texto* tiempoTexto = new Texto((WCHAR*)temporizador->getTexto().c_str(), 0.35f, 0,
+		SCR_WIDTH - 250.0f, 90.0f, 0, main->cameraDetails);
+	tiempoTexto->name = "TiempoRestante";
+	ourText.emplace_back(tiempoTexto);
+
+	inicializaEnemigos();
+
 	billBoard2D.emplace_back(new Billboard2D((WCHAR*)L"billboards/awesomeface.png", 6, 6, 100, 200, 0, camara->cameraDetails));
 	scale = glm::vec3(100.0f, 100.0f, 0.0f);
 	billBoard2D.back()->setScale(&scale);
+	}
+
+	void Scenario::crearEnemigo() {
+		if (juegoFinalizado || florObjetivo == NULL || puntoSpawnEnemigos == NULL) return;
+
+		try {
+			glm::vec3 posicionSpawn = *puntoSpawnEnemigos->getNextTranslate();
+			std::mt19937 generador(static_cast<unsigned int>(get_nanos()));
+			std::uniform_real_distribution<float> anguloAleatorio(0.0f, 360.0f);
+			std::uniform_real_distribution<float> distanciaAleatoria(20.0f, 62.0f);
+			std::uniform_real_distribution<float> alturaAleatoria(-1.0f, 2.0f);
+
+			float angulo = anguloAleatorio(generador) * 3.14159265f / 180.0f;
+			float distancia = distanciaAleatoria(generador);
+			glm::vec3 posicion = posicionSpawn;
+			posicion.x += cos(angulo) * distancia;
+			posicion.z += sin(angulo) * distancia;
+			posicion.y -= 5.0f;
+			posicion.y = glm::max(posicion.y,
+				terreno->Superficie(posicion.x, posicion.z) + 2.0f + alturaAleatoria(generador));
+
+			Enemigo* enemigo = NULL;
+			if (!enemigosDisponibles.empty()) {
+				enemigo = enemigosDisponibles.back();
+				enemigosDisponibles.pop_back();
+				enemigo->reiniciar(florObjetivo, camara);
+			}
+			else {
+				enemigo = new Enemigo(camara->cameraDetails, florObjetivo);
+				enemigo->setObjetivoAlternativo(camara);
+				enemigo->setRadioDeteccionJugador(35.0f);
+			}
+			enemigo->setTranslate(&posicion);
+			enemigo->setNextTranslate(&posicion);
+			glm::vec3 escala(0.04f, 0.04f, 0.04f);
+			enemigo->setScale(&escala);
+			enemigo->setEstado(Enemigo::Estado::Corriendo);
+			enemigo->setAnimation(0);
+
+			enemigos.emplace_back(enemigo);
+			ourModel.emplace_back(enemigo);
+		}
+		catch (...) {
+			ERRORL("No se pudo crear el enemigo.", "ENEMIGO");
+		}
+	}
+
+	void Scenario::inicializaEnemigos() {
+		for (int i = 0; i < 10; i++)
+			crearEnemigo();
 	}
 
 	void Scenario::inicializaArboles() {
@@ -558,6 +645,121 @@ void Scenario::InitGraph(Model* main) {
 
 
 
+int Scenario::update() {
+	if (juegoFinalizado) return -1;
+
+	for (Enemigo* enemigo : enemigos) {
+		if (enemigo->getActive()) {
+			float alturaTerreno = terreno->Superficie(
+				enemigo->getNextTranslate()->x,
+				enemigo->getNextTranslate()->z);
+			enemigo->actualizar(gameTime.deltaTime, alturaTerreno, enemigos);
+		}
+	}
+
+	for (int i = static_cast<int>(enemigos.size()) - 1; i >= 0; i--) {
+		Enemigo* enemigo = enemigos[i];
+		if (!enemigo->puedeEliminarse()) continue;
+
+		auto modelo = std::find(ourModel.begin(), ourModel.end(), enemigo);
+		if (modelo != ourModel.end())
+			ourModel.erase(modelo);
+		enemigos.erase(enemigos.begin() + i);
+		enemigosDisponibles.emplace_back(enemigo);
+		enemigo->setActive(false);
+
+		if (temporizador != NULL && !temporizador->estaTerminado())
+			crearEnemigo();
+	}
+
+	if (temporizador != NULL)
+		temporizador->actualizar(gameTime.deltaTime);
+
+	int resultado = Scene::update();
+
+	if (!juegoFinalizado && vidaFlor != NULL) {
+		Principal* principal = dynamic_cast<Principal*>(camara);
+		for (Enemigo* enemigo : enemigos) {
+			if (enemigo->getActive() && !enemigo->estaMuerto()
+				&& enemigo->getObjetivo() == camara
+				&& enemigo->estaEnRango() && enemigo->puedeAtacar()
+				&& principal != NULL) {
+				enemigo->atacar(camara);
+				principal->restaVida();
+				for (Texto* texto : ourText) {
+					if (texto->name.compare("Vida") == 0) {
+						std::wstring vida = L"VIDA: " + std::to_wstring(principal->getVida());
+						texto->initTexto(vida);
+						break;
+					}
+				}
+				continue;
+			}
+
+			if (enemigo->getActive() && !enemigo->estaMuerto()
+				&& enemigo->getObjetivo() == florObjetivo
+				&& enemigo->estaEnRango() && enemigo->puedeAtacar()) {
+				enemigo->atacar(florObjetivo);
+				vidaFlor->recibirDano();
+				actualizarVidaFlorEnPantalla();
+				break;
+			}
+		}
+	}
+
+	if (vidaFlor != NULL && vidaFlor->estaDestruida()) {
+		juegoFinalizado = true;
+		juegoGanado = false;
+		if (temporizador != NULL) temporizador->pausar();
+		mostrarResultado(L"PERDISTE");
+	}
+	else if (temporizador != NULL && temporizador->estaTerminado()) {
+		juegoFinalizado = true;
+		juegoGanado = true;
+		mostrarResultado(L"GANASTE");
+	}
+
+	actualizarTemporizadorEnPantalla();
+	return resultado;
+}
+
+void Scenario::actualizarVidaFlorEnPantalla() {
+	if (vidaFlor == NULL) return;
+	for (Texto* texto : ourText) {
+		if (texto->name.compare("VidaFlor") == 0) {
+			std::wstring vida = L"VIDA FLOR: " + std::to_wstring(vidaFlor->getVida());
+			texto->initTexto(vida);
+			break;
+		}
+	}
+}
+
+void Scenario::actualizarTemporizadorEnPantalla() {
+	if (temporizador == NULL) return;
+	for (Texto* texto : ourText) {
+		if (texto->name.compare("TiempoRestante") == 0) {
+			std::wstring tiempo = temporizador->getTexto();
+			texto->initTexto(tiempo);
+			break;
+		}
+	}
+}
+
+void Scenario::mostrarResultado(const wchar_t* mensaje) {
+	for (Texto* texto : ourText) {
+		if (texto->name.compare("Resultado") == 0) {
+			texto->initTexto((WCHAR*)mensaje);
+			return;
+		}
+	}
+
+	Texto* resultado = new Texto((WCHAR*)mensaje, 0.75f, 0,
+		SCR_WIDTH / 2.0f - 170.0f, SCR_HEIGHT / 2.0f, 0,
+		camara->cameraDetails);
+	resultado->name = "Resultado";
+	ourText.emplace_back(resultado);
+}
+
 Scene* Scenario::Render() {
 	clearScreen();
 	// Decimos que dibuje la media esfera
@@ -641,4 +843,17 @@ Scenario::~Scenario() {
 			if (ourModel[i] != camara)
 			delete ourModel[i];
 	this->ourModel.clear();
+	this->enemigos.clear();
+	for (Enemigo* enemigo : enemigosDisponibles)
+		delete enemigo;
+	this->enemigosDisponibles.clear();
+
+	if (vidaFlor != NULL) {
+		delete vidaFlor;
+		vidaFlor = NULL;
+	}
+	if (temporizador != NULL) {
+		delete temporizador;
+		temporizador = NULL;
+	}
 }

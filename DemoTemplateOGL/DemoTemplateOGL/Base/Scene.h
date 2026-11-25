@@ -9,6 +9,7 @@
 #include "Water.h"
 #include "Animator.h"
 #include "Animation.h"
+#include "Principal.h"
 
 class Scene {
 	public:
@@ -33,29 +34,89 @@ class Scene {
             setAngulo(angulo);
             getSky()->setRotY(angulo);
             Model* camara = getMainModel();
-			for (int i = 0; i < getLoadedModels()->size(); i++){
+			bool perderVida = false;
+			for (int i = 0; i < getLoadedModels()->size(); i++) {
 				auto it = getLoadedModels()->begin() + i;
-				Model *collider = NULL, *model = *it;
-				for (int j = 0; j < model->getModelAttributes()->size(); j++){
+				Model* collider = NULL, * model = *it;
+				for (int j = 0; j < model->getModelAttributes()->size(); j++) {
 					int idxCollider = -1;
 					bool objInMovement = (*model->getNextTranslate(j)) != (*model->getTranslate(j));
-					glm::vec3 &posM = objInMovement ? *model->getNextTranslate(j) : *model->getTranslate(j);
+					glm::vec3& posM = objInMovement ? *model->getNextTranslate(j) : *model->getTranslate(j);
 					glm::vec3 ejeColision = glm::vec3(0);
 					bool isPrincipal = model == camara; // Si es personaje principal, activa gravedad
 					float terrainY = getTerreno()->Superficie(posM.x, posM.z);
+					if (model->name.compare("fogata") == 0 && j == 0) {
+						glm::vec3 positionA = *camara->getNextTranslate(); // extrae la traslación de A
+						glm::vec3 positionB = posM;
+						float followSpeed = 1.0f * gameTime.deltaTime / 1000;
+						positionB = glm::mix(positionB, positionA, followSpeed);
+						positionB.y =
+							getTerreno()->Superficie(positionB.x, positionB.z);
+						model->setNextTranslate(&positionB);
+					}
 					ModelCollider mcollider = model->update(terrainY, *getLoadedModels(), ejeColision, isPrincipal, j);
-					if (mcollider.model != NULL){
+					if (mcollider.model != NULL) {
 						collider = (Model*)mcollider.model;
 						idxCollider = mcollider.attrIdx;
+					}
+					if (collider != NULL && model == camara) {
+						if (collider->name.compare("AID") == 0) {
+							Principal* principal = dynamic_cast<Principal*>(camara);
+							if (principal != NULL) {
+								principal->regenerarVida();
+								for (Texto* texto : *getLoadedText()) {
+									if (texto->name.compare("Vida") == 0) {
+										std::wstring vida = L"VIDA: " + std::to_wstring(principal->getVida());
+										texto->initTexto(vida);
+										break;
+									}
+								}
+							}
+						}
+						if (ejeColision.y == 1) {
+							INFO("APLASTADO!!!! " + collider->name, "JUMP HITBOX_" + to_string(idxCollider));
+							if (removeCollideModel(collider, idxCollider))
+								i--;
+						}
+					}
+					else if (collider != NULL) {
+						if (model->name.compare("fogata") == 0 && j == 0
+							&& collider == camara) {
+							bool agregar = true;
+							for (Texto* a : *getLoadedText()) {
+								if (a->name.compare("GAMEOVER") == 0) {
+									agregar = false;
+									break;
+								}
+							}
+							if (agregar) {
+								Texto* coordenadas = new Texto((WCHAR*)L"PERDISTE", 100, 0, 0, 44, 0, camara->cameraDetails);
+								coordenadas->name = "GAMEOVER";
+								getLoadedText()->emplace_back(coordenadas);
+							}
+						}
+					}
+					if (model->name.compare("bullet_9_mm") == 0 && mcollider.hitGround) {
+						if (mcollider.model != NULL) {
+							// INFO("IMPACTO!!!! " + ((Model*)mcollider.model)->name, "Impact HITBOX_" + to_string(mcollider.attrIdx));
+						}
+						else {
+							//							INFO("IMPACTO!!!! ", "Impact HITBOX_"+to_string(mcollider.attrIdx));
+						}
+						removeCollideModel(model, j);
+						j--;
 					}
 					if (j < 0) j = 0;
 				}
 				if (i < 0) i = 0;
 			}
+
+			// El daño del jugador se aplica únicamente desde el enemigo que lo tenga como objetivo.
+
 			// Actualizamos la camara
-            camara->cameraDetails->CamaraUpdate(camara->getRotY(), camara->getTranslate());
-            return -1;
-        }
+			camara->cameraDetails->CamaraUpdate(camara->getRotY(), camara->getTranslate());
+			return -1;
+		}
 
 		virtual bool removeCollideModel(Model* collider, int idxCollider){
 			auto it = std::find(getLoadedModels()->begin(), getLoadedModels()->end(), collider);

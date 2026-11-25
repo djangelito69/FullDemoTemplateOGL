@@ -17,6 +17,9 @@
 #include "Billboard2D.h"
 #include "CollitionBox.h"
 #include "spritesec.h"
+#include "Enemigo.h"
+#include "VidaFlor.h"
+#include "TemporizadorJuego.h"
 
 class Scenario : public Scene {
 private:
@@ -26,9 +29,23 @@ private:
 	std::vector<BillboardAnimation*> billBoardAnim;
 	std::vector<Billboard2D*> billBoard2D;
 	std::vector<Model*> ourModel;
+	std::vector<Enemigo*> enemigos;
+	std::vector<Enemigo*> enemigosDisponibles;
 	Model* camara;
+	Model* florObjetivo;
+	Model* puntoSpawnEnemigos;
+	VidaFlor* vidaFlor;
+	TemporizadorJuego* temporizador;
+	bool juegoFinalizado;
+	bool juegoGanado;
 	float angulo;
 	std::vector<Texto*> ourText;
+
+	void inicializaEnemigos();
+	void crearEnemigo();
+	void mostrarResultado(const wchar_t* mensaje);
+	void actualizarVidaFlorEnPantalla();
+	void actualizarTemporizadorEnPantalla();
 public:
 	Scenario(Camera *cam);
 	Scenario(Model *camIni);
@@ -44,6 +61,7 @@ public:
 	//el metodo render toma el dispositivo sobre el cual va a dibujar
 	//y hace su tarea ya conocida
 	Scene* Render();
+	int update() override;
 
 	std::vector<Model*> *getLoadedModels();
 	std::vector<Billboard*> *getLoadedBillboards();

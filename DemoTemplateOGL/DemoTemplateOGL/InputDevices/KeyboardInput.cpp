@@ -73,6 +73,10 @@ bool KeysEvents(GameActions *actions){
 			actions->sideAdvance = 1;
 //		KEYS[input.A] = false;
 	}
+	if (KEYS[input.M]) {
+		actions->lockMouse = true;
+		KEYS[input.M] = false;
+	}
 	if (KEYS[input.W]) {
 		actions->advance = 1;
 //		KEYS[input.W] = false;
@@ -82,10 +86,14 @@ bool KeysEvents(GameActions *actions){
 //		KEYS[input.S] = false;
 	}
 	if (KEYS[input.Space] && *actions->jump == 0){
-		*actions->jump = 20;
+		*actions->jump = 14;
 	}
-	if (cDelta.getLbtn() && cDelta.getDX() != 0) {
-		actions->setAngle(cDelta.getDX() > 0 ? 1 : -1);
+	if (cDelta.getLbtn()) {
+		actions->fired = true;
+		if (cDelta.getDX() != 0) {
+			actions->setAngle(cDelta.getDX() > 0 ? 1 : -1);
+		}
+		cDelta.setLbtn(false);
 	}
 	if (cDelta.getRbtn() && cDelta.getDY() != 0) { //KEYS[KEYB_CAMERA]
 		actions->setPitch(cDelta.getDY() > 0 ? 1 : -1);

@@ -150,6 +150,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Ammo.h" />
     <ClInclude Include="Base\Animation.h" />
     <ClInclude Include="Base\Animator.h" />
     <ClInclude Include="Base\Billboard.h" />
@@ -164,10 +165,15 @@
     <ClInclude Include="Billboard2D.h" />
     <ClInclude Include="Billboard2DAnimation.h" />
     <ClInclude Include="CollitionBox.h" />
+    <ClInclude Include="Enemigo.h" />
     <ClInclude Include="KDTree\CollitionDetection.h" />
     <ClInclude Include="Primitivos.h" />
+    <ClInclude Include="Principal.h" />
+    <ClInclude Include="RainSystem.h" />
     <ClInclude Include="spritesec.h" />
+    <ClInclude Include="TemporizadorJuego.h" />
     <ClInclude Include="Texto.h" />
+    <ClInclude Include="VidaFlor.h" />
     <ClInclude Include="Water.h" />
     <ClInclude Include="WinAPIHeaders\DemoTemplateOGL.h" />
     <ClInclude Include="WinAPIHeaders\framework.h" />
@@ -208,6 +214,7 @@
     <ClCompile Include="InputDevices\KeyboardInput.cpp" />
     <ClCompile Include="Base\Model.cpp" />
     <ClCompile Include="Base\Utilities.cpp" />
+    <ClCompile Include="RainSystem.cpp" />
     <ClCompile Include="Scenario.cpp" />
     <ClCompile Include="Texto.cpp" />
   </ItemGroup>

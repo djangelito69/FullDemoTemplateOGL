@@ -15,6 +15,8 @@
 #include "Base/model.h"
 #include "Base/Scene.h"
 #include "Scenario.h"
+#include "Principal.h"
+#include "RainSystem.h"
 
 #define MAX_LOADSTRING 100
 #ifdef _WIN32 
@@ -37,7 +39,6 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 #define wcscpy_s(x,y,z) wcscpy(x,z)
 #define wcscat_s(x,y,z) wcscat(x,z)
 GLFWwindow* window;
-void window_size_callback(GLFWwindow* window, int width, int height);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -55,12 +56,16 @@ void updatePosCords(Texto* coordenadas);
 void updateFPS(Texto *fps, int totFrames);
 int startGameEngine(void* ptrMsg);
 void adaptViewPort();
+void window_size_callback(void* window, int width, int height);
+void changeLockingMouse();
 
 // Propiedades de la ventana
 unsigned int SCR_WIDTH = 800;
 unsigned int SCR_HEIGHT = 600;
 glm::vec2 windowSize;
-bool showHitbox = true;
+glm::vec2 windowCenter;
+bool lockMouse = true;
+bool showHitbox = false;
 bool showStats = true;
 bool newContext = false; // Bandera para identificar si OpenGL 2.0 > esta activa
 struct GameTime gameTime;
@@ -88,6 +93,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     gamPad = new GamePadRR(1); // Obtenemos el primer gamepad conectado
     MSG msg = { 0 };
     void *ptrMsg = (void*)&msg;
+    window_size_callback(&hWnd, windowSize.x, windowSize.y);
 #else
 int main(int argc, char** argv){
     if (!glfwInit()){
@@ -96,7 +102,11 @@ int main(int argc, char** argv){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    window = glfwCreateWindow(SCR_WIDTH,SCR_HEIGHT, "DemoTemplateOGL - Engine GL33", NULL, NULL);
+    GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* modo = glfwGetVideoMode(monitor);
+    SCR_WIDTH = modo->width;
+    SCR_HEIGHT = modo->height;
+    window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "DemoTemplateOGL - Engine GL33", monitor, NULL);
     windowSize = glm::vec2(SCR_WIDTH, SCR_HEIGHT);
     glfwMakeContextCurrent(window);
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
@@ -104,6 +114,7 @@ int main(int argc, char** argv){
         glfwTerminate();
         return -1;
     }
+    window_size_callback((void*)window, SCR_WIDTH, SCR_HEIGHT);
     void *ptrMsg = NULL;
 #endif
     return startGameEngine(ptrMsg);
@@ -116,11 +127,22 @@ int startGameEngine(void *ptrMsg){
     //5, ye - 1,-5
     //MainModel *model = new MainModel(hWnd, "models/Cube.obj", translate);
     Camera* camera = Camera::getInstance();
-    Model* model = new Model("models/Personaje/Idle.fbx", translate, camera);
+    camera->setFirstPerson(false);
+    Model* model = new Principal("models/Personaje/Idle.fbx", translate, camera);
     try {
         std::vector<Animation> animations = Animation::loadAllAnimations("models/Personaje/Idle.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
-        std::vector<Animation> animation = Animation::loadAllAnimations("models/Personaje/Run.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
-        std::move(animation.begin(), animation.end(), std::back_inserter(animations));
+        std::vector<Animation> runAnimations = Animation::loadAllAnimations("models/Personaje/Run.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+        std::vector<Animation> firingAnimations = Animation::loadAllAnimations("models/Personaje/Firing.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+        std::vector<Animation> runLeftAnimations = Animation::loadAllAnimations("models/Personaje/Run_Left.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+        std::vector<Animation> runRightAnimations = Animation::loadAllAnimations("models/Personaje/Run_Right.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+        std::vector<Animation> runBackwardsAnimations = Animation::loadAllAnimations("models/Personaje/Run_Backwards.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+        std::vector<Animation> jumpAnimations = Animation::loadAllAnimations("models/Personaje/Jump.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+        std::move(runAnimations.begin(), runAnimations.end(), std::back_inserter(animations));
+        std::move(firingAnimations.begin(), firingAnimations.end(), std::back_inserter(animations));
+        std::move(runLeftAnimations.begin(), runLeftAnimations.end(), std::back_inserter(animations));
+        std::move(runRightAnimations.begin(), runRightAnimations.end(), std::back_inserter(animations));
+        std::move(runBackwardsAnimations.begin(), runBackwardsAnimations.end(), std::back_inserter(animations));
+        std::move(jumpAnimations.begin(), jumpAnimations.end(), std::back_inserter(animations));
         for (Animation animation : animations)
             model->setAnimator(Animator(animation));
         model->setAnimation(0);
@@ -157,6 +179,7 @@ int startGameEngine(void *ptrMsg){
         int totFrames = 0;
         double deltasCount = 0;
         double jump = 0;
+        RainSystem rain(10000, 50.0f, 50.0f, camera);
         while (isProgramRunning(ptrMsg)) {
             deltasCount += gameTime.deltaTime;
             totFrames++;
@@ -173,6 +196,8 @@ int startGameEngine(void *ptrMsg){
             bool checkCollition = checkInput(&actions, OGLobj);
             int cambio = OGLobj->update();
             Scene *escena = OGLobj->Render();
+            rain.update(OGLobj->getTerreno());
+            rain.render();
             if (escena != OGLobj) {
                 delete OGLobj;
                 OGLobj = escena;
@@ -195,25 +220,99 @@ int startGameEngine(void *ptrMsg){
 
 bool checkInput(GameActions *actions, Scene* scene) {
     bool changeAnimation = false;
-    if (gamePadEvents(actions)){
-    } else {
-        mouseActions();
-        KeysEvents(actions);
-    }
+    static double firingRemaining = 0.0;
+    static double firingCooldown = 0.0;
+
+    firingRemaining -= gameTime.deltaTime;
+    if (firingRemaining < 0.0) firingRemaining = 0.0;
+    firingCooldown -= gameTime.deltaTime;
+    if (firingCooldown < 0.0) firingCooldown = 0.0;
+
+
+    mouseActions();
+    KeysEvents(actions);
+    gamePadEvents(actions);
     Model* OGLobj = scene->getMainModel();
+
+    if (actions->fired && firingCooldown <= 0.0) {
+        firingRemaining = 900.0;
+        firingCooldown = 900.0;
+        OGLobj->setAnimation(0);
+        OGLobj->setAnimation(2);
+    }
+    else if (actions->fired) {
+        actions->fired = false;
+    }
+
+    if (actions->fired && lockMouse) {
+        OGLobj->setAnimation(2);
+        auto models = scene->getLoadedModels();
+        for (Model* m : *models) {
+            if (m->name.compare("bullet_9_mm") != 0)
+                continue;
+            auto& attr = *m->getModelAttributes();
+            ModelAttributes mattr = attr.at(0);
+            mattr.forward = -OGLobj->cameraDetails->getRight();
+            mattr.hitbox = NULL;//CollitionBox::GenerateAABB(*OGLobj->getNextTranslate(), m->AABBsize, m->cameraDetails);
+            attr.push_back(mattr);
+            int idx = attr.size() - 1;
+            glm::vec3 trans = *OGLobj->getNextTranslate();
+            trans.y += OGLobj->cameraDetails->getCharacterHeight() / 2;
+            trans = trans + mattr.forward * 1.5f;
+            attr.back().origin = trans;
+            attr.back().owner = OGLobj;
+            attr.back().life = 30.0f;
+            m->setTranslate(&trans, idx);
+            m->setNextTranslate(&trans, idx);
+            m->setNextRotX(mattr.nextRotX, idx);
+            m->setNextRotY(OGLobj->getNextRotY() + mattr.nextRotY, idx);
+            m->setNextRotZ(mattr.nextRotZ, idx);
+            m->setRotX(mattr.rotX, idx);
+            m->setRotY(OGLobj->getNextRotY() + mattr.rotY, idx);
+            m->setRotZ(mattr.rotZ, idx);
+            m->setScale(&mattr.scale, idx);
+            break;
+        }
+    }
     if (actions->displayHitboxStats){
-        showHitbox = !showHitbox;
         showStats = !showStats;
+    }
+    if (actions->lockMouse) {
+        lockMouse = !lockMouse;
+        changeLockingMouse();
     }
     if (actions->firstPerson) {
         OGLobj->cameraDetails->setFirstPerson(!OGLobj->cameraDetails->getFirstPerson());
     }
     if (actions->sideAdvance != 0) {
-        OGLobj->setNextRotY(OGLobj->getNextRotY() + ((16 * gameTime.deltaTime / 100) * actions->sideAdvance));
+        glm::vec3 pos = *OGLobj->getNextTranslate();
+        glm::vec3 right = OGLobj->cameraDetails->getFront();
+        float rotY = glm::radians(OGLobj->getNextRotY());
+        float speed = 3.0f * gameTime.deltaTime / 100.0f;
+        pos += right * (speed * -actions->sideAdvance);
+        OGLobj->setNextTranslate(&pos);
     }
     bool isMoving = (actions->advance != 0 || actions->hAdvance != 0);
 
-    if (isMoving) {
+    if (*actions->jump > 0) {
+        OGLobj->setAnimation(6);
+    }
+    else if (firingRemaining > 0.0) {
+        OGLobj->setAnimation(2);
+    }
+    else if (actions->advance > 0) {
+        OGLobj->setAnimation(1);
+    }
+    else if (actions->advance < 0) {
+        OGLobj->setAnimation(5);
+    }
+    else if (actions->sideAdvance < 0) {
+        OGLobj->setAnimation(4);
+    }
+    else if (actions->sideAdvance > 0) {
+        OGLobj->setAnimation(3);
+    }
+    else if (isMoving) {
         OGLobj->setAnimation(1);
     }
     else {
@@ -221,13 +320,13 @@ bool checkInput(GameActions *actions, Scene* scene) {
     }
 
     if (actions->hAdvance != 0) {
-        glm::vec3 pos = *OGLobj->getTranslate();
+        glm::vec3 pos = *OGLobj->getNextTranslate();
         pos.x += actions->hAdvance * (3 * gameTime.deltaTime / 100) * glm::cos(glm::radians(OGLobj->getRotY()));
         pos.z += actions->hAdvance * (3 * gameTime.deltaTime / 100) * glm::sin(glm::radians(OGLobj->getRotY()));
         OGLobj->setNextTranslate(&pos);
     }
     if (actions->advance != 0) {
-        glm::vec3 pos = *OGLobj->getTranslate();
+        glm::vec3 pos = *OGLobj->getNextTranslate();
         pos.x += actions->advance * (3 * gameTime.deltaTime / 100) * glm::sin(glm::radians(OGLobj->getRotY()));
         pos.z += actions->advance * (3 * gameTime.deltaTime / 100) * glm::cos(glm::radians(OGLobj->getRotY()));
         OGLobj->setNextTranslate(&pos);
@@ -244,10 +343,15 @@ bool checkInput(GameActions *actions, Scene* scene) {
         OGLobj->setNextTranslate(&pos);
     }
     if (actions->getAngle() != NULL) {
-        OGLobj->cameraDetails->calculateAngleAroundPlayer((*actions->getAngle()) * (6 * gameTime.deltaTime / 100));
+        float rotacion = *actions->getAngle();
+        float yawActual = OGLobj->getNextRotY();
+        yawActual += rotacion * 120.0f * gameTime.deltaTime / 1000.0f;
+        OGLobj->setNextRotY(yawActual);
+        OGLobj->setRotY(yawActual);
     }
     if (actions->getPitch() != NULL) {
-        OGLobj->cameraDetails->setPitch(OGLobj->cameraDetails->getPitch() + (*actions->getPitch()) * (6 * gameTime.deltaTime / 100));
+        float pitch = OGLobj->cameraDetails->getPitch() + *actions->getPitch() * 70.0f * gameTime.deltaTime / 1000.0f;
+        OGLobj->cameraDetails->setPitch(pitch);
     }
     if (actions->getZoom() != NULL) {
         OGLobj->cameraDetails->setZoom(OGLobj->cameraDetails->getZoom() + *actions->getZoom() * (6 * gameTime.deltaTime / 100));
@@ -304,15 +408,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                 //afecta el tama�o de la misma se dispara de nuevo
                 int height = HIWORD(lParam),
                     width = LOWORD(lParam);
-                if (height == 0)
-                    width = 1;
-                SCR_HEIGHT = height;
-                SCR_WIDTH = width;
+                window_size_callback(&hWnd, width, height);
                 adaptViewPort();
-                RECT rect;
-                if (GetClientRect(hWnd, &rect)) 
-                    windowSize = glm::vec2(rect.right - rect.left, rect.bottom - rect.top);
-                else windowSize = glm::vec2(0);
             }
         } break;
         case WM_LBUTTONDOWN: {
@@ -370,6 +467,9 @@ bool SetUpPixelFormat(HDC hDC, PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelForm
 
 // Funciones de inicializacion para ventana compatible con OpenGL
 int prepareRenderWindow(HINSTANCE hInstance, int nCmdShow) {
+    SCR_WIDTH = GetSystemMetrics(SM_CXSCREEN);
+    SCR_HEIGHT = GetSystemMetrics(SM_CYSCREEN);
+
     WNDCLASSEX wc;
     ZeroMemory(&wc, sizeof(WNDCLASSEX));
     wc.cbSize = sizeof(WNDCLASSEX);
@@ -384,15 +484,11 @@ int prepareRenderWindow(HINSTANCE hInstance, int nCmdShow) {
     RegisterClassEx(&wc);
     hInst = hInstance;
 #ifdef ENGINE_DIRECTX
-    RECT wr = { 0, 0, SCR_WIDTH, SCR_HEIGHT };
-    AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
-
     wcscat_s(szTitle, MAX_LOADSTRING, L" - Engine DX11");
     hWnd = CreateWindow(szWindowClass, szTitle,
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        100, 100,
-        wr.right - wr.left, //SCR_WIDTH, 
-        wr.bottom - wr.top, //SCR_HEIGHT,
+        WS_POPUP | WS_VISIBLE,
+        0, 0,
+        SCR_WIDTH, SCR_HEIGHT,
         NULL, NULL, hInstance, NULL);
     if (hWnd == NULL) {
         return 1;
@@ -500,14 +596,10 @@ int prepareRenderWindow(HINSTANCE hInstance, int nCmdShow) {
     }
     gladLoadGL();
     // create window
-    RECT wr = { 0, 0, SCR_WIDTH, SCR_HEIGHT };
-    AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
-
     hWnd = CreateWindow(szWindowClass, szTitle,
-        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-        100, 100,
-        wr.right - wr.left, //SCR_WIDTH, 
-        wr.bottom - wr.top, //SCR_HEIGHT,
+        WS_POPUP | WS_VISIBLE,
+        0, 0,
+        SCR_WIDTH, SCR_HEIGHT,
         NULL, NULL, hInstance, NULL);
     if (hWnd == NULL) {
         return 1;
@@ -554,16 +646,71 @@ void key_callback() {
         KEYS[i] = isKeyDown(i);
     }
 }
-#else
-void window_size_callback(GLFWwindow* window, int width, int height){
+#endif
+void window_size_callback(void* window, int width, int height) {
+    int centerX, centerY;
     if (height == 0)
         width = 1;
     SCR_HEIGHT = height;
     SCR_WIDTH = width;
+#ifndef ENGINE_DIRECTX
     glViewport(0, 0, width, height);
+#endif
+#ifndef _WIN32
     windowSize = glm::vec2(SCR_WIDTH, SCR_HEIGHT);
+    glfwMakeContextCurrent((GLFWwindow*)window);
+    // --- Step 1: Get framebuffer size (actual pixel area used by OpenGL) ---
+    int fbWidth, fbHeight;
+    glfwGetFramebufferSize((GLFWwindow*)window, &fbWidth, &fbHeight);
+    // --- Step 2: Calculate framebuffer center ---
+    centerX = fbWidth / 2.0;
+    centerY = fbHeight / 2.0;
+    if (lockMouse) {
+        glfwSetInputMode((GLFWwindow*)window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        if (glfwRawMouseMotionSupported())
+            glfwSetInputMode((GLFWwindow*)window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    }
+#else
+    HWND& hWnd = *((HWND*)window);
+    RECT rect;
+    if (GetClientRect(hWnd, &rect)) {
+        // Center in client coordinates (relative to window)
+        POINT topLeft = { rect.left, rect.top };
+        POINT bottomRight = { rect.right, rect.bottom };
+        ClientToScreen(hWnd, &topLeft);
+        ClientToScreen(hWnd, &bottomRight);
+        rect.left = topLeft.x;
+        rect.top = topLeft.y;
+        rect.right = bottomRight.x;
+        rect.bottom = bottomRight.y;
+        windowSize = glm::vec2(rect.right - rect.left, rect.bottom - rect.top);
+    }
+    else windowSize = glm::vec2(0);
+
+    windowCenter = glm::vec2(windowSize.x / 2.0f, windowSize.y / 2.0f);
+
+    // If you need the center in *screen coordinates*, convert it:
+    POINT pt;
+    pt.x = static_cast<LONG>(windowCenter.x);
+    pt.y = static_cast<LONG>(windowCenter.y);
+
+    // ClientToScreen converts from window-relative to screen coordinates
+    ClientToScreen(hWnd, &pt);
+    centerX = pt.x;
+    centerY = pt.y;
+    if (lockMouse) {
+        CURSORINFO cursor = { 0 };
+        GetCursorInfo(&cursor);
+        if (cursor.flags != CURSOR_SUPPRESSED || cursor.flags != 0)
+            while (ShowCursor(FALSE) == 0);
+        ClipCursor(&rect);
+    }
+#endif
+    // --- Step 3: Set window center coordinates ---
+    windowCenter = glm::vec2(centerX, centerY);
 }
 
+#ifndef _WIN32
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
     char k = (key == GLFW_KEY_LEFT_SHIFT)? input.Shift : key;
     if (action == GLFW_PRESS || action == GLFW_REPEAT || action == GLFW_RELEASE){
@@ -599,22 +746,63 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 #endif
 
 void mouseActions() {
+    static int lastX = 0.0;
+    static int lastY = 0.0;
+    static bool first = true;
     double x, y;
+    if (!lockMouse)
+        return;
+
 #ifdef _WIN32 
     POINT p;
     GetCursorPos(&p);
-    ScreenToClient(hWnd, &p);
-    x = p.x;
-    y = p.y;
+    x = (int)p.x;
+    y = (int)p.y;
+    if (first) {
+        lastX = windowCenter.x;
+        lastY = windowCenter.y;
+        x = lastX;
+        y = lastY;
+    }
 #else
     glfwGetCursorPos(window, &x, &y);
 #endif
-    glm::vec2 scale = glm::vec2(x, y) / windowSize;
-    OGLobj->getMainModel()->cameraDetails->setPitch(scale.y * 70.0f - 30.f);
-    scale = cDelta.setPosition(x, y, cDelta.getLbtn() || cDelta.getRbtn());
-/*    scale = cDelta.setPosition(x, y, true);
-    if (scale.x != 0)
-        OGLobj->getMainModel()->cameraDetails->calculateAngleAroundPlayer((scale.x / abs(scale.x)) * -3.0);*/
+    // Compute delta movement
+    double dx = 0.0, dy = 0.0;
+    if (!first) {
+        dx = x - lastX;
+        dy = y - lastY;
+    }
+    else {
+        first = false;
+    }
+    // Ignore if there’s no movement
+    if (dx == 0.0 && dy == 0.0) return;
+    // Convert to normalized scale
+    glm::vec2 scale(dx / windowSize.x, dy / windowSize.y);
+
+    // Example: use dy to modify pitch, dx to rotate camera
+    auto cam = OGLobj->getMainModel()->cameraDetails;
+    Model* main = OGLobj->getMainModel();
+    float nextRotY = main->getNextRotY();
+
+    main->setNextRotY(nextRotY - (scale.x * 1000.0f * gameTime.deltaTime / 100));
+    //    cDelta.setPosition(dx, dy, cDelta.getLbtn() || cDelta.getRbtn());
+    if (scale.y != 0)
+        cam->setPitch(cam->getPitch() + (scale.y * 100.0f)); // invert Y as needed
+    //        cam->calculateAngleAroundPlayer((scale.x / abs(scale.x)) * -3.0);
+    scale = cDelta.setPosition(x, y, true);
+#ifdef _WIN32 
+    lastX = (int)windowCenter.x;
+    lastY = (int)windowCenter.y;
+    // set center to fps
+    SetCursorPos(lastX, lastY);
+#else
+    lastX = x;
+    lastY = y;
+    // set center to fps
+    glfwSetCursorPos(window, lastX, lastY);
+#endif
 }
 
 int isProgramRunning(void *ptr){
@@ -629,7 +817,7 @@ int isProgramRunning(void *ptr){
         glfwSetKeyCallback(window, key_callback);
         glfwSetScrollCallback(window, scroll_callback);
         glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
-        glfwSetWindowSizeCallback(window, window_size_callback);
+        glfwSetWindowSizeCallback(window, (GLFWwindowsizefun)window_size_callback);
         glfwSetMouseButtonCallback(window, mouse_button_callback);
         renderiza = true;
     }
@@ -732,19 +920,47 @@ int finishProgram(void *ptr){
 
 int gamePadEvents(GameActions *actions){
 #ifdef _WIN32 
+    static WORD botonesAnterior = 0;
+
     if (gamPad->IsConnected()) {
-        //convierto a flotante el valor analogico de tipo entero
-        double grados = (float)gamPad->GetState().Gamepad.sThumbLX / 32767.0;
-        //debido a que los controles se aguadean con el uso entonces ya no dan el cero
-        //en el centro, por eso lo comparo con una ventana de aguadencia de mi control
-        if (grados > 0.19 || grados < -0.19)
-            //model->CamaraGiraY(grados * 3.0);
-            actions->setAngle(grados * 3.0);
-        float velocidad = (float)gamPad->GetState().Gamepad.sThumbLY / 32767;
-        if (velocidad > 0.19 || velocidad < -0.19) {
-            //model->movePosition(velocidad);
-            actions->advance = velocidad;
-        }
+        XINPUT_STATE estado = gamPad->GetState();
+        XINPUT_GAMEPAD& pad = estado.Gamepad;
+
+        auto deadZone = [](SHORT valor, float limite = 0.19f) {
+            float normalizado = static_cast<float>(valor) / 32767.0f;
+            if (normalizado > -limite && normalizado < limite)
+                return 0.0f;
+            return normalizado;
+        };
+
+        float avance = deadZone(pad.sThumbLY);
+        float lateral = deadZone(pad.sThumbLX);
+        float mirarX = deadZone(pad.sThumbRX);
+        float mirarY = deadZone(pad.sThumbRY);
+
+        if (avance != 0.0f)
+            actions->advance = avance > 0.0f ? 1 : -1;
+        if (lateral != 0.0f)
+            actions->sideAdvance = lateral > 0.0f ? -1 : 1;
+
+        actions->setAngle(-mirarX);
+        actions->setPitch(-mirarY);
+
+        if (pad.bRightTrigger > 40)
+            actions->fired = true;
+
+        WORD pulsado = pad.wButtons & ~botonesAnterior;
+        if (pulsado & XINPUT_GAMEPAD_A)
+            if (actions->jump != NULL && *actions->jump == 0)
+                *actions->jump = 14;
+        if (pulsado & XINPUT_GAMEPAD_B)
+            actions->lockMouse = true;
+        if (pulsado & XINPUT_GAMEPAD_Y)
+            actions->firstPerson = true;
+        if (pulsado & XINPUT_GAMEPAD_X)
+            actions->displayHitboxStats = true;
+
+        botonesAnterior = pad.wButtons;
         return 1;
     } else
         return 0;
@@ -775,4 +991,25 @@ void updateFPS(Texto *fps, int totFrames){
     swprintf((wchar_t*)conv, 50, L"%d", totFrames);
     wcscat_s((wchar_t*)conv, 50, L" FPS");
     fps->initTexto(conv);
+}
+
+void changeLockingMouse() {
+    if (lockMouse) {
+#ifdef _WIN32 
+        window_size_callback(&hWnd, SCR_WIDTH, SCR_HEIGHT);
+#else
+        window_size_callback(window, SCR_WIDTH, SCR_HEIGHT);
+#endif
+    }
+    else {
+#ifdef _WIN32 
+        CURSORINFO cursor{ 0 };
+        GetCursorInfo(&cursor);
+        if (cursor.flags != CURSOR_SHOWING)
+            while (ShowCursor(TRUE) == CURSOR_SHOWING);
+        ClipCursor(NULL);
+#else
+        glfwSetInputMode((GLFWwindow*)window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+#endif
+    }
 }
