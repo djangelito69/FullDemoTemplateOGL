@@ -56,8 +56,10 @@ extern unsigned int SCR_HEIGHT;
 extern glm::vec2 windowSize;
 extern bool showHitbox;
 extern bool showStats;
-const float GRAVITY = -6.50f; // Gravity acceleration (m/s²), softened for a smoother jump
-const float TERMINAL_VELOCITY = -50.0f; // Optional: Prevents infinite acceleration
+extern bool gamePaused;
+
+const float GRAVITY = -6.50f;
+const float TERMINAL_VELOCITY = -50.0f;
 extern bool KEYS[256];
 extern bool prevKEYS[256];
 
@@ -75,6 +77,7 @@ struct GameActions {
 	bool sprintPressed = false;
 	bool firstPerson = false;
 	bool lockMouse = false;
+	bool pausePressed = false;
 	double *jump = NULL;
 	bool action = false;
 	bool displayHitboxStats = false;

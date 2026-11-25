@@ -56,6 +56,9 @@ bool KeysEvents(GameActions *actions){
 	if (KEYS[input.P] && !prevKEYS[input.P]) {
 		actions->firstPerson = true;
 	}
+	if (KEYS[input.Escape] && !prevKEYS[input.Escape]) {
+		actions->pausePressed = true;
+	}
 	if (KEYS[input.C] && !prevKEYS[input.C]) {
 		actions->displayHitboxStats = !actions->displayHitboxStats;
 	}

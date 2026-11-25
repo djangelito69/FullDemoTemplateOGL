@@ -129,10 +129,10 @@ void Texto::Draw(){
 }
 
 void Texto::Draw(Shader &shader){
-    for (int i = 0; showStats && i < textBillboard.size(); i ++){
+	for (int i = 0; (showStats || name.compare("PAUSA") == 0) && i < textBillboard.size(); i ++){
 		prepShader(shader, *textBillboard[i]);
-	    textBillboard[i]->Draw(shader);
-    }
+		textBillboard[i]->Draw(shader);
+	}
 }
 
 void Texto::prepShader(Shader& shader, Billboard2D &bill){

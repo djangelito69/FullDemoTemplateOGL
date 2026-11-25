@@ -134,7 +134,7 @@ public:
 	virtual void actualizar(float deltaMilisegundos, float alturaTerreno,
 		const std::vector<Enemigo*>& otrosEnemigos) {
 		if (estado == Estado::Muerto) {
-			tiempoMuerte += deltaMilisegundos / 1000.0f;
+			tiempoMuerte += deltaMilisegundos / 1800.0f;
 			setAnimation(2);
 			return;
 		}

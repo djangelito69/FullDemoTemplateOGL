@@ -43,7 +43,7 @@ void Scenario::InitGraph(Model* main) {
 	//creamos el objeto skydome
 	sky = new SkyDome(32, 32, 20, (WCHAR*)L"skydome/nublado.jpg", main->cameraDetails);
 	//creamos el terreno
-	terreno = new Terreno((WCHAR*)L"skydome/TerrenoGranja.jpg", (WCHAR*)L"skydome/Grass2.jpg", 400, 400, main->cameraDetails);
+	terreno = new Terreno((WCHAR*)L"skydome/TerrenoGranja2.jpg", (WCHAR*)L"skydome/Grass2.jpg", 400, 400, main->cameraDetails);
 	glm::vec3 translate;
 	glm::vec3 scale;
 	glm::vec3 rotation;
@@ -103,29 +103,17 @@ void Scenario::InitGraph(Model* main) {
 	hay1->walkeable = false;
 	ourModel.emplace_back(hay1);
 
-	Model* hay2 = new Model("models/Casa/HAYBALE.fbx", main->cameraDetails);
-	translate = glm::vec3(168.5f, 6.0f, -124.5f);
-	scale = glm::vec3(2.0f, 2.0f, 3.0f);
-	hay2->setTranslate(&translate);
-	hay2->setNextTranslate(&translate);
-	hay2->setScale(&scale);
-	hay2->setRotZ(270.0f);
-	hay2->setNextRotZ(270.0f);
-	hay2->ignoreAABB = false;
-	hay2->walkeable = false;
-	ourModel.emplace_back(hay2);
-
-	Model* hay3 = new Model("models/Casa/HAYBALE.fbx", main->cameraDetails);
-	translate = glm::vec3(168.5f, 6.0f, -118.5f);
-	scale = glm::vec3(2.0f, 2.0f, 3.0f);
-	hay3->setTranslate(&translate);
-	hay3->setNextTranslate(&translate);
-	hay3->setScale(&scale);
-	hay3->setRotZ(270.0f);
-	hay3->setNextRotZ(270.0f);
-	hay3->ignoreAABB = false;
-	hay3->walkeable = false;
-	ourModel.emplace_back(hay3);
+	Model* pwr = new Model("models/Casa/PowerGenerator.fbx", main->cameraDetails);
+	translate = glm::vec3(183.5f, 7.0f, -135.5f);
+	scale = glm::vec3(6.0f, 6.0f, 6.0f);
+	pwr->setTranslate(&translate);
+	pwr->setNextTranslate(&translate);
+	pwr->setScale(&scale);
+	pwr->setRotX(270.0f);
+	pwr->setNextRotX(270.0f);
+	pwr->ignoreAABB = false;
+	pwr->walkeable = false;
+	ourModel.emplace_back(pwr);
 
 
 	Model* casa = new Model("models/Casa/CASA.fbx", main->cameraDetails);
@@ -144,40 +132,40 @@ void Scenario::InitGraph(Model* main) {
 
 	//Colisiones de la Casa
 	CollitionBox* paredCasa1 = new CollitionBox(
-		164.13f, 6.2f, -147.1f,
-		26.1f, 6.0f, 1.5f, main->cameraDetails);
+		164.13f, 20.2f, -147.1f,
+		26.1f, 20.0f, 1.5f, main->cameraDetails);
 	paredCasa1->name = "ParedCasa1";
 	paredCasa1->ignoreAABB = false;
 	paredCasa1->walkeable = false;
 	ourModel.emplace_back(paredCasa1);
 
 	CollitionBox* paredCasa2 = new CollitionBox(
-		164.13f, 6.2f, -96.3f,
-		26.1f, 6.0f, 1.5f, main->cameraDetails);
+		164.13f, 20.2f, -96.3f,
+		26.1f, 20.0f, 1.5f, main->cameraDetails);
 	paredCasa2->name = "ParedCasa2";
 	paredCasa2->ignoreAABB = false;
 	paredCasa2->walkeable = false;
 	ourModel.emplace_back(paredCasa2);
 
 	CollitionBox* paredCasa3 = new CollitionBox(
-		190.3f, 6.2f, -121.3f,
-		1.5f, 6.0f, 25.4f, main->cameraDetails);
+		190.3f, 20.2f, -121.3f,
+		1.5f, 20.0f, 25.4f, main->cameraDetails);
 	paredCasa3->name = "ParedCasa3";
 	paredCasa3->ignoreAABB = false;
 	paredCasa3->walkeable = false;
 	ourModel.emplace_back(paredCasa3);
 
 	CollitionBox* paredCasa4 = new CollitionBox(
-		138.0f, 6.2f, -141.9f,
-		1.5f, 6.0f, 5.0f, main->cameraDetails);
+		138.0f, 20.2f, -141.9f,
+		1.5f, 20.0f, 5.0f, main->cameraDetails);
 	paredCasa4->name = "ParedCasa4";
 	paredCasa4->ignoreAABB = false;
 	paredCasa4->walkeable = false;
 	ourModel.emplace_back(paredCasa4);
 
 	CollitionBox* paredCasa5 = new CollitionBox(
-		138.13f, 6.2f, -100.0f,
-		1.5f, 6.0f, 5.0f, main->cameraDetails);
+		138.13f, 20.2f, -100.0f,
+		1.5f, 20.0f, 5.0f, main->cameraDetails);
 	paredCasa5->name = "ParedCasa5";
 	paredCasa5->ignoreAABB = false;
 	paredCasa5->walkeable = false;
@@ -186,18 +174,40 @@ void Scenario::InitGraph(Model* main) {
 
 
 	Model* mesa = new Model("models/Casa/MESA.fbx", main->cameraDetails);
-	translate = glm::vec3(159.5f, 7.0f, -121.5f);
-	scale = glm::vec3(5.0f, 5.0f, 2.0f);
+	translate = glm::vec3(159.5f, 8.5f, -121.5f);
+	scale = glm::vec3(5.0f, 7.0f, 5.0f);
 	mesa->setTranslate(&translate);
 	mesa->setNextTranslate(&translate);
 	mesa->setScale(&scale);
 	mesa->setRotX(270.0f);
 	mesa->setNextRotX(270.0f);
-	mesa->setRotZ(270.0f);
-	mesa->setNextRotZ(270.0f);
+	mesa->setRotZ(180.0f);
+	mesa->setNextRotZ(180.0f);
 	mesa->ignoreAABB = false;
 	mesa->walkeable = false;
 	ourModel.emplace_back(mesa);
+
+	Model* crates = new Model("models/Casa/Crates.fbx", main->cameraDetails);
+	translate = glm::vec3(181.5f, 8.5f, -103.5f);
+	scale = glm::vec3(1.0f, 1.0f, 1.0f);
+	crates->setTranslate(&translate);
+	crates->setNextTranslate(&translate);
+	crates->setScale(&scale);
+	crates->ignoreAABB = false;
+	crates->walkeable = false;
+	ourModel.emplace_back(crates);
+
+	Model* horse = new Model("models/horse.glb", main->cameraDetails);
+	translate = glm::vec3(155.5f, 7.6f, -100.5f);
+	scale = glm::vec3(7.0f, 7.0f, 7.0f);
+	horse->setTranslate(&translate);
+	horse->setNextTranslate(&translate);
+	horse->setRotY(270.0f);
+	horse->setNextRotY(270.0f);
+	horse->setScale(&scale);
+	horse->ignoreAABB = false;
+	horse->walkeable = false;
+	ourModel.emplace_back(horse);
 
 	model = new Ammo("models/bullet/bullet_9_mm.glb", main->cameraDetails);
 	translate = glm::vec3(159.5f, 8.0f, -123.5f);
@@ -213,7 +223,7 @@ void Scenario::InitGraph(Model* main) {
 
 	Model* aid = new Model("models/Casa/AID.fbx", main->cameraDetails);
 	aid->name = "AID";
-	translate = glm::vec3(159.5f, 8.0f, -121.5f);
+	translate = glm::vec3(159.5f, 10.0f, -121.5f);
 	scale = glm::vec3(5.0f, 5.0f, 2.0f);
 	aid->setTranslate(&translate);
 	aid->setNextTranslate(&translate);
@@ -258,26 +268,23 @@ void Scenario::InitGraph(Model* main) {
 	inicializaVacas();
 	inicializaOvejas();
 	Texto* vidaPrincipal = new Texto((WCHAR*)L"VIDA: 250", 0.35f, 0,
-		SCR_WIDTH - 180.0f, 20.0f, 0, main->cameraDetails);
+		20.0f, SCR_HEIGHT - 50.0f, 0, main->cameraDetails);
 	vidaPrincipal->name = "Vida";
 	ourText.emplace_back(vidaPrincipal);
 
 	Texto* vidaFlorTexto = new Texto((WCHAR*)L"VIDA FLOR: 500", 0.35f, 0,
-		SCR_WIDTH - 250.0f, 55.0f, 0, main->cameraDetails);
+		SCR_WIDTH - 330.0f, 55.0f, 0, main->cameraDetails);
 	vidaFlorTexto->name = "VidaFlor";
 	ourText.emplace_back(vidaFlorTexto);
 
-	temporizador = new TemporizadorJuego(300.0f);
+	temporizador = new TemporizadorJuego(150.0f);
 	Texto* tiempoTexto = new Texto((WCHAR*)temporizador->getTexto().c_str(), 0.35f, 0,
-		SCR_WIDTH - 250.0f, 90.0f, 0, main->cameraDetails);
+		SCR_WIDTH / 2.0f - 95.0f, 20.0f, 0, main->cameraDetails);
 	tiempoTexto->name = "TiempoRestante";
 	ourText.emplace_back(tiempoTexto);
 
 	inicializaEnemigos();
 
-	billBoard2D.emplace_back(new Billboard2D((WCHAR*)L"billboards/awesomeface.png", 6, 6, 100, 200, 0, camara->cameraDetails));
-	scale = glm::vec3(100.0f, 100.0f, 0.0f);
-	billBoard2D.back()->setScale(&scale);
 	}
 
 	void Scenario::crearEnemigo() {
@@ -326,12 +333,12 @@ void Scenario::InitGraph(Model* main) {
 	}
 
 	void Scenario::inicializaEnemigos() {
-		for (int i = 0; i < 10; i++)
+		for (int i = 0; i < 15; i++)
 			crearEnemigo();
 	}
 
 	void Scenario::inicializaArboles() {
-		const int cantidadArboles = 70;
+		const int cantidadArboles = 60;
 		const float limiteX = 190.0f;
 		const float limiteZ = 190.0f;
 

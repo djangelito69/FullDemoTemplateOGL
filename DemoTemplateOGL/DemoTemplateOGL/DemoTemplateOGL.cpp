@@ -67,7 +67,8 @@ glm::vec2 windowCenter;
 bool lockMouse = true;
 bool showHitbox = false;
 bool showStats = true;
-bool newContext = false; // Bandera para identificar si OpenGL 2.0 > esta activa
+bool gamePaused = false;
+bool newContext = false;
 struct GameTime gameTime;
 Camera* Camera::cameraInstance = NULL;
 
@@ -180,6 +181,7 @@ int startGameEngine(void *ptrMsg){
         double deltasCount = 0;
         double jump = 0;
         RainSystem rain(10000, 50.0f, 50.0f, camera);
+        Texto* pausa = NULL;
         while (isProgramRunning(ptrMsg)) {
             deltasCount += gameTime.deltaTime;
             totFrames++;
@@ -194,13 +196,39 @@ int startGameEngine(void *ptrMsg){
             // render
             // ------
             bool checkCollition = checkInput(&actions, OGLobj);
-            int cambio = OGLobj->update();
+            if (actions.pausePressed) {
+                gamePaused = !gamePaused;
+                if (gamePaused && pausa == NULL) {
+                    pausa = new Texto((WCHAR*)L"PAUSA", 1.25f, 0, 350, 280, 0, camera);
+                    pausa->name = "PAUSA";
+                    OGLobj->getLoadedText()->emplace_back(pausa);
+                }
+                else if (!gamePaused && pausa != NULL) {
+                    auto& textos = *OGLobj->getLoadedText();
+                    textos.erase(std::remove(textos.begin(), textos.end(), pausa), textos.end());
+                    delete pausa;
+                    pausa = NULL;
+                }
+            }
+            if (!gamePaused) {
+                int cambio = OGLobj->update();
+                rain.update(OGLobj->getTerreno());
+            }
+            else {
+                gameTime.deltaTime = 0;
+            }
             Scene *escena = OGLobj->Render();
-            rain.update(OGLobj->getTerreno());
-            rain.render();
+            if (!gamePaused)
+                rain.render();
             if (escena != OGLobj) {
                 delete OGLobj;
                 OGLobj = escena;
+                pausa = NULL;
+                if (gamePaused) {
+                    pausa = new Texto((WCHAR*)L"PAUSA", 1.25f, 0, 350, 280, 0, camera);
+                    pausa->name = "PAUSA";
+                    OGLobj->getLoadedText()->emplace_back(pausa);
+                }
                 OGLobj->getLoadedText()->emplace_back(fps);
                 OGLobj->getLoadedText()->emplace_back(coordenadas);
             }
@@ -232,10 +260,13 @@ bool checkInput(GameActions *actions, Scene* scene) {
     mouseActions();
     KeysEvents(actions);
     gamePadEvents(actions);
+    if (gamePaused || actions->pausePressed) {
+        return false;
+    }
     Model* OGLobj = scene->getMainModel();
 
     if (actions->fired && firingCooldown <= 0.0) {
-        firingRemaining = 900.0;
+        firingRemaining = 600.0;
         firingCooldown = 900.0;
         OGLobj->setAnimation(0);
         OGLobj->setAnimation(2);
