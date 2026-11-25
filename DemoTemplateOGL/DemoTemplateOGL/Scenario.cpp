@@ -265,7 +265,6 @@ void Scenario::InitGraph(Model* main) {
 	inicializaTrigo();
 	inicializaPollos();
 	inicializaPuercos();
-	inicializaVacas();
 	inicializaOvejas();
 	Texto* vidaPrincipal = new Texto((WCHAR*)L"VIDA: 250", 0.35f, 0,
 		20.0f, SCR_HEIGHT - 50.0f, 0, main->cameraDetails);
@@ -546,57 +545,7 @@ void Scenario::InitGraph(Model* main) {
 		ye = terreno->Superficie(-9, -15) + 4;
 	}
 
-	void Scenario::inicializaVacas() {
-		const int cantidadVacas = 8;
-		const float limiteX = 190.0f;
-		const float limiteZ = 190.0f;
-
-		std::random_device semilla;
-		std::mt19937 generador(semilla());
-		std::uniform_real_distribution<float> distribucionX(-limiteX, limiteX);
-		std::uniform_real_distribution<float> distribucionZ(-limiteZ, limiteZ);
-
-		glm::vec3 scale = glm::vec3(1.5f, 1.5f, 1.5f);
-
-		float x = distribucionX(generador);
-		float z = distribucionZ(generador);
-		float ye = terreno->Superficie(x, z);
-		glm::vec3 pos(x, ye, z);
-
-		Model* vaca = new Model("models/Animales/VACA.fbx", camara->cameraDetails);
-		try {
-			std::vector<Animation> animations = Animation::loadAllAnimations("models/Animales/VACA.fbx", vaca->GetBoneInfoMap(), vaca->getBonesInfo(), vaca->GetBoneCount());
-			for (Animation animation : animations)
-				vaca->setAnimator(Animator(animation));
-			vaca->setAnimation(0);
-		}
-		catch (...) {
-			ERRORL("Could not load vacas animation!", "ANIMACION");
-		}
-
-		vaca->setScale(&scale);
-		vaca->setTranslate(&pos);
-		vaca->setNextTranslate(&pos);
-		vaca->walkeable = false;
-		vaca->ignoreAABB = true;
-		ourModel.emplace_back(vaca);
-
-		for (int i = 1; i < cantidadVacas; i++) {
-			x = distribucionX(generador);
-			z = distribucionZ(generador);
-			ye = terreno->Superficie(x, z);
-			pos = glm::vec3(x, ye, z);
-
-			Model* clon = vaca->clone();
-			clon->setScale(&scale);
-			clon->setTranslate(&pos);
-			clon->setNextTranslate(&pos);
-			clon->walkeable = false;
-			ourModel.emplace_back(clon);
-		}
-
-		ye = terreno->Superficie(-9, -15) + 4;
-	}
+	
 
 	void Scenario::inicializaOvejas() {
 		const int cantidadOvejas = 8;
@@ -714,7 +663,14 @@ int Scenario::update() {
 		}
 	}
 
-	if (vidaFlor != NULL && vidaFlor->estaDestruida()) {
+	Principal* principalFinal = dynamic_cast<Principal*>(camara);
+	if (principalFinal != NULL && principalFinal->estaMuerto()) {
+		juegoFinalizado = true;
+		juegoGanado = false;
+		if (temporizador != NULL) temporizador->pausar();
+		mostrarResultado(L"PERDISTE");
+	}
+	else if (vidaFlor != NULL && vidaFlor->estaDestruida()) {
 		juegoFinalizado = true;
 		juegoGanado = false;
 		if (temporizador != NULL) temporizador->pausar();

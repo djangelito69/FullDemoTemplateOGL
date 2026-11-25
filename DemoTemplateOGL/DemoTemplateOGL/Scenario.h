@@ -55,7 +55,6 @@ public:
 	void inicializaTrigo();
 	void inicializaPollos();
 	void inicializaPuercos();
-	void inicializaVacas();
 	void inicializaOvejas();
 
 	//el metodo render toma el dispositivo sobre el cual va a dibujar

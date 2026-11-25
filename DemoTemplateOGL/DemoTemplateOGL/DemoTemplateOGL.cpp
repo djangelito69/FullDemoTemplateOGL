@@ -138,12 +138,14 @@ int startGameEngine(void *ptrMsg){
         std::vector<Animation> runRightAnimations = Animation::loadAllAnimations("models/Personaje/Run_Right.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
         std::vector<Animation> runBackwardsAnimations = Animation::loadAllAnimations("models/Personaje/Run_Backwards.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
         std::vector<Animation> jumpAnimations = Animation::loadAllAnimations("models/Personaje/Jump.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
+        std::vector<Animation> deathAnimations = Animation::loadAllAnimations("models/Personaje/Death.fbx", model->GetBoneInfoMap(), model->getBonesInfo(), model->GetBoneCount());
         std::move(runAnimations.begin(), runAnimations.end(), std::back_inserter(animations));
         std::move(firingAnimations.begin(), firingAnimations.end(), std::back_inserter(animations));
         std::move(runLeftAnimations.begin(), runLeftAnimations.end(), std::back_inserter(animations));
         std::move(runRightAnimations.begin(), runRightAnimations.end(), std::back_inserter(animations));
         std::move(runBackwardsAnimations.begin(), runBackwardsAnimations.end(), std::back_inserter(animations));
         std::move(jumpAnimations.begin(), jumpAnimations.end(), std::back_inserter(animations));
+        std::move(deathAnimations.begin(), deathAnimations.end(), std::back_inserter(animations));
         for (Animation animation : animations)
             model->setAnimator(Animator(animation));
         model->setAnimation(0);
@@ -264,6 +266,17 @@ bool checkInput(GameActions *actions, Scene* scene) {
         return false;
     }
     Model* OGLobj = scene->getMainModel();
+
+    Principal* principal = dynamic_cast<Principal*>(OGLobj);
+    if (principal != NULL && principal->estaMuerto()) {
+        actions->advance = 0;
+        actions->hAdvance = 0;
+        actions->sideAdvance = 0;
+        actions->fired = false;
+        *actions->jump = 0;
+        OGLobj->setAnimation(7);
+        return true;
+    }
 
     if (actions->fired && firingCooldown <= 0.0) {
         firingRemaining = 600.0;

@@ -34,7 +34,18 @@ public:
     float restaVida() {
         if (vida > 0)
             vida--;
+        if (vida == 0)
+            morir();
         return vida;
+    }
+
+    bool estaMuerto() const {
+        return vida <= 0;
+    }
+
+    void morir() {
+        vida = 0;
+        setAnimation(7);
     }
 
     int getVida() {
@@ -49,6 +60,8 @@ public:
         if (nuevaVida < 0) nuevaVida = 0;
         if (nuevaVida > vidaMaxima) nuevaVida = vidaMaxima;
         vida = nuevaVida;
+        if (vida == 0)
+            morir();
     }
 
     void regenerarVida() {
